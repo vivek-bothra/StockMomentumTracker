@@ -37,7 +37,7 @@ fetch_stock_data.py: The Python script.
 
 2. Set Up Google Sheets
 
-Use Sample dashboard, I had , Also ensure to
+Use Sample dashboard, I had - https://docs.google.com/spreadsheets/d/1tIlEingRLIXZsiLay-iFZSPjZZRBMNlvj1cn29E1Z44/edit?gid=0#gid=0 , Also ensure to
 
 Go to Google Cloud Console.
 
