@@ -21,40 +21,24 @@ except Exception as e:
     logging.error(f"Failed to initialize Google Sheets API: {str(e)}")
     raise
 
-# Ticker list (complete list of 100 tickers)
-tickers = [
-    "GOOGL", "META", "AMZN", "BABA", "0700.HK", "NFLX", "BIDU", "JD", "EBAY", "MELI",
-    "SE", "4755.T", "ZAL.DE", "CPNG", "3690.HK", "PDD", "W", "SNAP", "PINS", "RDDT",
-    "1024.HK", "035420.KS", "SPOT", "TME", "BILI", "ROKU", "HUYA", "IQ", "BKNG", "EXPE",
-    "TCOM", "ABNB", "MMYT", "TRVG", "DESP", "PYPL", "SQ", "ADYEN.AS", "NU", "COIN",
-    "HOOD", "SOFI", "ZOMATO.NS", "DASH", "DHER.DE", "TKWY.AS", "UBER", "LYFT", "GRAB",
-    "PRX.AS", "ZG", "REA.AX", "RMV.L", "CARG", "AUTO.L", "3659.T", "036570.KS", "TTWO",
-    "EA", "RBLX", "U", "259960.KS", "DBX", "ZM", "TWLO", "SHOP", "GDDY", "WIX", "NET",
-    "AKAM", "UPWK", "FVRR", "TDOC", "MTCH", "BMBL", "ANGI", "SSTK", "TTD", "VMEO",
-    "4385.T", "JMIA", "ALE.WA", "ASC.L", "BOO.L", "CHWY", "ETSY", "HFG.DE", "JUSTDIAL.NS",
-    "NAUKRI.NS", "069080.KS", "NTES", "YY", "035720.KS", "GRPN", "YELP", "TRIP",
-    "SWIGGY.NS", "NYKAA.NS", "PAYTM.NS", "POLICYBZR.NS"
-]
+# Ticker list (10 tickers for initial test)
+tickers = ["GOOGL", "META", "AMZN", "NFLX", "PYPL", "UBER", "SHOP", "ZOMATO.NS", "PAYTM.NS", "NYKAA.NS"]
 
 # Function to calculate EMA
 def calculate_ema(data, period):
     return data.ewm(span=period, adjust=False).mean()
 
-# Retry decorator for handling temporary API failures
-@retry(stop_max_attempt_number=3, wait_fixed=2000)
-def fetch_stock_history(ticker):
-    session = requests.Session()
-    session.headers.update({'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) Chrome/91.0.4472.124'})
+# Retry decorator with exponential backoff
+@retry(stop_max_attempt_number=3, wait_exponential_multiplier=1000, wait_exponential_max=10000)
+def fetch_stock_history(ticker, session):
     stock = yf.Ticker(ticker, session=session)
     return stock.history(period="2y", auto_adjust=True)
 
 # Fetch and calculate MACD for a ticker
-def get_stock_data(ticker):
+def get_stock_data(ticker, session):
     try:
         logging.info(f"Fetching data for {ticker}")
         # Validate ticker
-        session = requests.Session()
-        session.headers.update({'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) Chrome/91.0.4472.124'})
         stock = yf.Ticker(ticker, session=session)
         info = stock.info
         if not info or 'symbol' not in info:
@@ -62,7 +46,7 @@ def get_stock_data(ticker):
             return [ticker, "Invalid Ticker", 0, 0, 0, 0, 0]
         
         # Fetch history with retry
-        df = fetch_stock_history(ticker)
+        df = fetch_stock_history(ticker, session)
         if df.empty:
             logging.warning(f"No data for {ticker}")
             return [ticker, "No Data", 0, 0, 0, 0, 0]
@@ -93,14 +77,33 @@ def get_stock_data(ticker):
         logging.error(f"Error for {ticker}: {str(e)}")
         return [ticker, f"Error: {str(e)}", 0, 0, 0, 0, 0]
     finally:
-        time.sleep(1.5)  # Delay to avoid rate limiting
+        time.sleep(5)  # Increased delay to avoid rate limiting
 
-# Fetch data for all tickers
+# Fetch data for all tickers with retry for rate-limited tickers
 results = []
+session = requests.Session()
+session.headers.update({'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) Chrome/91.0.4472.124'})
+failed_tickers = []
+
 for ticker in tickers:
-    result = get_stock_data(ticker)
+    result = get_stock_data(ticker, session)
     results.append(result)
     logging.info(f"Processed {ticker}: {result[1]}")
+    if "Rate limited" in str(result[1]):
+        failed_tickers.append(ticker)
+
+# Retry failed tickers after a longer delay
+if failed_tickers:
+    logging.info(f"Retrying {len(failed_tickers)} failed tickers after 60-second delay")
+    time.sleep(60)
+    for ticker in failed_tickers:
+        result = get_stock_data(ticker, session)
+        # Update result in results list
+        for i, r in enumerate(results):
+            if r[0] == ticker:
+                results[i] = result
+                break
+        logging.info(f"Retry processed {ticker}: {result[1]}")
 
 # Add timestamp column
 timestamp = pd.Timestamp.now().strftime("%Y-%m-%d %H:%M:%S")
