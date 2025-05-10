@@ -16,34 +16,25 @@ SCOPES = ['https://www.googleapis.com/auth/spreadsheets']
 
 try:
     creds = Credentials.from_service_account_file('credentials.json', scopes=SCOPES)
-    service = build('sheets', 'v4', credentials=creds)
+    service = build('sheets', 'v4', credentials=creds, cache_discovery=False)  # <-- suppress file_cache warning
 except Exception as e:
     logging.error(f"Failed to initialize Google Sheets API: {str(e)}")
     raise
 
-# Ticker list (10 tickers for initial test)
+# Ticker list
 tickers = ["GOOGL", "META", "AMZN", "NFLX", "PYPL", "UBER", "SHOP", "ZOMATO.NS", "PAYTM.NS", "NYKAA.NS"]
 
-# Function to calculate EMA
 def calculate_ema(data, period):
     return data.ewm(span=period, adjust=False).mean()
 
-# Retry decorator with exponential backoff
-@retry(stop_max_attempt_number=3, wait_exponential_multiplier=1000, wait_exponential_max=10000)
+@retry(stop_max_attempt_number=3, wait_exponential_multiplier=3000, wait_exponential_max=30000)
 def fetch_stock_history(ticker, session):
     stock = yf.Ticker(ticker, session=session)
     return stock.history(period="2y", auto_adjust=True)
 
-# Fetch and calculate MACD for a ticker
 def get_stock_data(ticker, session):
     try:
         logging.info(f"Fetching data for {ticker}")
-        # Validate ticker
-        stock = yf.Ticker(ticker, session=session)
-        info = stock.info
-        if not info or 'symbol' not in info:
-            logging.warning(f"Invalid or unsupported ticker: {ticker}")
-            return [ticker, "Invalid Ticker", 0, 0, 0, 0, 0]
         
         # Fetch history with retry
         df = fetch_stock_history(ticker, session)
@@ -53,11 +44,10 @@ def get_stock_data(ticker, session):
         
         # Resample to weekly (Friday close)
         weekly = df['Close'].resample('W-FRI').last().dropna()
-        if len(weekly) < 26:  # Need at least 26 weeks for EMA26
+        if len(weekly) < 26:
             logging.warning(f"Insufficient data for {ticker}: {len(weekly)} weeks")
             return [ticker, round(weekly.iloc[-1], 2) if not weekly.empty else "No Data", 0, 0, 0, 0, 0]
         
-        # Calculate MACD
         ema12 = calculate_ema(weekly, 12)
         ema26 = calculate_ema(weekly, 26)
         macd = ema12 - ema26
@@ -77,9 +67,8 @@ def get_stock_data(ticker, session):
         logging.error(f"Error for {ticker}: {str(e)}")
         return [ticker, f"Error: {str(e)}", 0, 0, 0, 0, 0]
     finally:
-        time.sleep(5)  # Increased delay to avoid rate limiting
+        time.sleep(15)  # Throttle calls to avoid rate limiting
 
-# Fetch data for all tickers with retry for rate-limited tickers
 results = []
 session = requests.Session()
 session.headers.update({'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) Chrome/91.0.4472.124'})
@@ -92,28 +81,23 @@ for ticker in tickers:
     if "Rate limited" in str(result[1]):
         failed_tickers.append(ticker)
 
-# Retry failed tickers after a longer delay
 if failed_tickers:
     logging.info(f"Retrying {len(failed_tickers)} failed tickers after 60-second delay")
     time.sleep(60)
     for ticker in failed_tickers:
         result = get_stock_data(ticker, session)
-        # Update result in results list
         for i, r in enumerate(results):
             if r[0] == ticker:
                 results[i] = result
                 break
         logging.info(f"Retry processed {ticker}: {result[1]}")
 
-# Add timestamp column
 timestamp = pd.Timestamp.now().strftime("%Y-%m-%d %H:%M:%S")
 results = [[r[0], r[1], r[2], r[3], r[4], r[5], r[6], timestamp] for r in results]
 
-# Prepare data for Google Sheets
 header = ["Ticker", "Weekly Close", "EMA12", "EMA26", "MACD", "Signal", "Hist", "Last Updated"]
 body = [header] + results
 
-# Update Google Sheet
 try:
     sheet = service.spreadsheets()
     range_name = f"Sheet1!A1:H{len(results) + 1}"
