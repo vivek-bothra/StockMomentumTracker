@@ -2,9 +2,10 @@ import yfinance as yf
 import pandas as pd
 from google.oauth2.service_account import Credentials
 from googleapiclient.discovery import build
-import json
 import logging
-from datetime import datetime
+import time
+import requests
+from retrying import retry
 
 # Set up logging
 logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s')
@@ -12,33 +13,77 @@ logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(
 # Google Sheets setup
 SHEET_ID = '1wiVMF-bOePDKeaKpQx46FsjZ9pMn1C0RqpnxjNiajmw'
 SCOPES = ['https://www.googleapis.com/auth/spreadsheets']
-creds = Credentials.from_service_account_file('credentials.json', scopes=SCOPES)
-service = build('sheets', 'v4', credentials=creds)
 
-# Ticker list with 100 unique entries (replaced ADE.OL, SQSP, DCT, YNDX with SWIGGY.NS, NYKAA.NS, PAYTM.NS, POLICYBZR.NS)
+try:
+    creds = Credentials.from_service_account_file('credentials.json', scopes=SCOPES)
+    service = build('sheets', 'v4', credentials=creds)
+except Exception as e:
+    logging.error(f"Failed to initialize Google Sheets API: {str(e)}")
+    raise
+
+# Ticker list
 tickers = [
     "GOOGL", "META", "AMZN", "BABA", "0700.HK", "NFLX", "BIDU", "JD", "EBAY", "MELI",
-    "SE", "4755.T", "ZAL.DE", "CPNG", "3690.HK", "PDD", "W", "SNAP", "PINS", "RDDT",
-    "1024.HK", "035420.KS", "SPOT", "TME", "BILI", "ROKU", "HUYA", "IQ", "BKNG", "EXPE",
-    "TCOM", "ABNB", "MMYT", "TRVG", "DESP", "PYPL", "SQ", "ADYEN.AS", "NU", "COIN",
-    "HOOD", "SOFI", "ZOMATO.NS", "DASH", "DHER.DE", "TKWY.AS", "UBER", "LYFT", "GRAB",
-    "PRX.AS", "ZG", "REA.AX", "RMV.L", "CARG", "AUTO.L", "3659.T",
-    "036570.KS", "TTWO", "EA", "RBLX", "U", "259960.KS", "DBX", "ZM", "TWLO", "SHOP",
-    "GDDY", "WIX", "NET", "AKAM", "UPWK", "FVRR", "TDOC", "MTCH", "BMBL", "ANGI",
-    "SSTK", "TTD", "VMEO", "4385.T", "JMIA", "ALE.WA", "ASC.L", "BOO.L",
-    "CHWY", "ETSY", "HFG.DE", "JUSTDIAL.NS", "NAUKRI.NS", "069080.KS", "NTES", "YY",
-    "035720.KS", "GRPN", "YELP", "TRIP", "SWIGGY.NS", "NYKAA.NS", "PAYTM.NS", "POLICYBZR.NS"
+    "SE", "4755.T", "ZAL.DE", "CPNG", "3690.HK", "PDD", "W",......................................................................................., "NYKAA.NS", "PAYTM.NS", "POLICYBZR.NS"
 ]
 
 # Function to calculate EMA
 def calculate_ema(data, period):
     return data.ewm(span=period, adjust=False).mean()
 
+# Function to get Yahoo Finance cookie and crumb
+def get_yahoo_credentials():
+    try:
+        headers = {
+            'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36'
+        }
+        # Get cookie
+        response = requests.get('https://fc.yahoo.com', headers=headers)
+        if response.status_code != 404:
+            logging.error(f"Failed to get cookie: {response.status_code}")
+            return None, None
+        cookie = response.headers.get('set-cookie')
+        if not cookie:
+            logging.error("No cookie received")
+            return None, None
+        
+        # Get crumb
+        crumb_url = 'https://query2.finance.yahoo.com/v1/test/getcrumb'
+        response = requests.get(crumb_url, headers=headers, cookies={'A3': cookie.split(';')[0]})
+        if response.status_code != 200:
+            logging.error(f"Failed to get crumb: {response.status_code}")
+            return None, None
+        crumb = response.text.strip()
+        return cookie, crumb
+    except Exception as e:
+        logging.error(f"Error getting Yahoo credentials: {str(e)}")
+        return None, None
+
+# Retry decorator for handling temporary API failures
+@retry(stop_max_attempt_number=3, wait_fixed=2000)
+def fetch_stock_history(ticker, cookie, crumb):
+    stock = yf.Ticker(ticker)
+    return stock.history(period="2y", auto_adjust=True, headers={'User-Agent': 'Mozilla/5.0', 'Cookie': cookie, 'Crumb': crumb})
+
 # Fetch and calculate MACD for a ticker
 def get_stock_data(ticker):
     try:
+        logging.info(f"Fetching data for {ticker}")
+        # Get Yahoo credentials
+        cookie, crumb = get_yahoo_credentials()
+        if not cookie or not crumb:
+            logging.warning(f"Failed to get Yahoo credentials for {ticker}")
+            return [ticker, "Auth Error", 0, 0, 0, 0, 0]
+        
+        # Validate ticker
         stock = yf.Ticker(ticker)
-        df = stock.history(period="2y")
+        info = stock.info
+        if not info or 'symbol' not in info:
+            logging.warning(f"Invalid or unsupported ticker: {ticker}")
+            return [ticker, "Invalid Ticker", 0, 0, 0, 0, 0]
+        
+        # Fetch history with retry
+        df = fetch_stock_history(ticker, cookie, crumb)
         if df.empty:
             logging.warning(f"No data for {ticker}")
             return [ticker, "No Data", 0, 0, 0, 0, 0]
@@ -68,9 +113,15 @@ def get_stock_data(ticker):
     except Exception as e:
         logging.error(f"Error for {ticker}: {str(e)}")
         return [ticker, f"Error: {str(e)}", 0, 0, 0, 0, 0]
+    finally:
+        time.sleep(1)  # Delay to avoid rate limiting
 
 # Fetch data for all tickers
-results = [get_stock_data(ticker) for ticker in tickers]
+results = []
+for ticker in tickers:
+    result = get_stock_data(ticker)
+    results.append(result)
+    logging.info(f"Processed {ticker}: {result[1]}")
 
 # Add timestamp column
 timestamp = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
@@ -81,12 +132,18 @@ header = ["Ticker", "Weekly Close", "EMA12", "EMA26", "MACD", "Signal", "Hist", 
 body = [header] + results
 
 # Update Google Sheet
-sheet = service.spreadsheets()
-request = sheet.values().update(
-    spreadsheetId=SHEET_ID,
-    range="Sheet1!A1:H101",  # 100 tickers + header
-    valueInputOption="RAW",
-    body={"values": body}
-).execute()
+try:
+    sheet = service.spreadsheets()
+    range_name = f"Sheet1!A1:H{len(results) + 1}"  # Dynamic range
+    request = sheet.values().update(
+        spreadsheetId=SHEET_ID,
+        range=range_name,
+        valueInputOption="RAW",
+        body={"values": body}
+    ).execute()
+    logging.info(f"Updated Google Sheet with {len(results)} tickers.")
+except Exception as e:
+    logging.error(f"Failed to update Google Sheet: {str(e)}")
+    raise
 
 print(f"Updated Google Sheet with {len(results)} tickers.")
