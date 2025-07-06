@@ -30,13 +30,13 @@ tickers = [
     "GOOGL", "META", "AMZN", "BABA", "0700.HK", "NFLX", "BIDU", "JD", "EBAY", "MELI",
     "SE", "4755.T", "ZAL.DE", "CPNG", "3690.HK", "PDD", "W", "SNAP", "PINS", "RDDT",
     "1024.HK", "035420.KS", "SPOT", "TME", "BILI", "ROKU", "HUYA", "IQ", "BKNG", "EXPE",
-    "TCOM", "ABNB", "MMYT", "TRVG", "DESP", "PYPL", "SQ", "ADYEN.AS", "NU", "COIN",
-    "HOOD", "SOFI", "ZOMATO.NS", "DASH", "DHER.DE", "TKWY.AS", "UBER", "LYFT", "GRAB",
+    "TCOM", "ABNB", "MMYT", "TRVG", "DESP", "PYPL", "XYZ", "ADYEN.AS", "NU", "COIN",
+    "HOOD", "SOFI", "ETERNAL.NS", "DASH", "DHER.DE", "TKWY.AS", "UBER", "LYFT", "GRAB",
     "PRX.AS", "ZG", "REA.AX", "RMV.L", "CARG", "AUTO.L", "3659.T", "036570.KS", "TTWO",
     "EA", "RBLX", "U", "259960.KS", "DBX", "ZM", "TWLO", "SHOP", "GDDY", "WIX", "NET",
     "AKAM", "UPWK", "FVRR", "TDOC", "MTCH", "BMBL", "ANGI", "SSTK", "TTD", "VMEO",
     "4385.T", "JMIA", "ALE.WA", "ASC.L", "BOO.L", "CHWY", "ETSY", "HFG.DE", "JUSTDIAL.NS",
-    "NAUKRI.NS", "069080.KS", "NTES", "YY", "035720.KS", "GRPN", "YELP", "TRIP",
+    "NAUKRI.NS", "069080.KS", "NTES", "NVDA", "035720.KS", "GRPN", "YELP", "TRIP",
     "SWIGGY.NS", "NYKAA.NS", "PAYTM.NS", "POLICYBZR.NS"
 ]
 
