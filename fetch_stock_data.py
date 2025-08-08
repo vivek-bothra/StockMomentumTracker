@@ -5,6 +5,7 @@ import pandas as pd
 from google.oauth2.service_account import Credentials
 from googleapiclient.discovery import build
 from googleapiclient.errors import HttpError
+import httplib2
 import logging
 import time
 from curl_cffi import requests
@@ -27,7 +28,8 @@ try:
         creds = Credentials.from_service_account_info(json.loads(os.getenv('GOOGLE_CREDENTIALS')), scopes=SCOPES)
     else:
         raise FileNotFoundError("Google credentials not provided")
-    service = build('sheets', 'v4', credentials=creds)
+    http = httplib2.Http(timeout=120)
+    service = build('sheets', 'v4', http=http, credentials=creds)
 except Exception as e:
     logging.error(f"Failed to initialize Google Sheets API: {str(e)}")
     raise
@@ -128,35 +130,35 @@ results = [[r[0], r[1], r[2], r[3], r[4], r[5], r[6], timestamp] for r in result
 header = ["Ticker", "Weekly Close", "EMA12", "EMA26", "MACD", "Signal", "Hist", "Last Updated"]
 body = [header] + results
 
-# Clear existing data in the Sheet range
-try:
-    sheet = service.spreadsheets()
-    clear_range = "Sheet1!A1:H1000"  # Clear a large range
-    logging.info(f"Clearing Google Sheet at range {clear_range}")
-    sheet.values().clear(spreadsheetId=SHEET_ID, range=clear_range).execute()
-except HttpError as e:
-    logging.error(f"Failed to clear Google Sheet: {str(e)}")
-    raise
-except Exception as e:
-    logging.error(f"Unexpected error clearing Google Sheet: {str(e)}")
-    raise
+# Update Google Sheet with retry logic
+sheet = service.spreadsheets()
+clear_range = "Sheet1!A1:H1000"  # Clear a large range
+range_name = f"Sheet1!A1:H{len(results) + 1}"
+max_attempts = 5
 
-# Update Google Sheet
-try:
-    range_name = f"Sheet1!A1:H{len(results) + 1}"
-    logging.info(f"Attempting to update Google Sheet at range {range_name}")
-    request = sheet.values().update(
-        spreadsheetId=SHEET_ID,
-        range=range_name,
-        valueInputOption="RAW",
-        body={"values": body}
-    ).execute()
-    logging.info(f"Successfully updated Google Sheet with {len(results)} tickers: {request.get('updatedCells')} cells updated")
-except HttpError as e:
-    logging.error(f"Google Sheets API error: {str(e)}")
-    raise
-except Exception as e:
-    logging.error(f"Unexpected error updating Google Sheet: {str(e)}")
-    raise
+for attempt in range(1, max_attempts + 1):
+    try:
+        logging.info(f"Clearing Google Sheet at range {clear_range}")
+        sheet.values().clear(spreadsheetId=SHEET_ID, range=clear_range).execute()
+        logging.info(f"Attempting to update Google Sheet at range {range_name}")
+        request = sheet.values().update(
+            spreadsheetId=SHEET_ID,
+            range=range_name,
+            valueInputOption="RAW",
+            body={"values": body}
+        ).execute()
+        logging.info(
+            f"Successfully updated Google Sheet with {len(results)} tickers: {request.get('updatedCells')} cells updated"
+        )
+        break
+    except (TimeoutError, HttpError) as e:
+        logging.warning(f"Attempt {attempt} failed: {str(e)}")
+        if attempt == max_attempts:
+            logging.error("Exceeded maximum attempts to update Google Sheet")
+            raise
+        time.sleep(2 ** attempt)
+    except Exception as e:
+        logging.error(f"Unexpected error updating Google Sheet: {str(e)}")
+        raise
 
 print(f"Updated Google Sheet with {len(results)} tickers.")
