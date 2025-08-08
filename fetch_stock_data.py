@@ -1,3 +1,5 @@
+import os
+import json
 import yfinance as yf
 import pandas as pd
 from google.oauth2.service_account import Credentials
@@ -19,7 +21,12 @@ SHEET_ID = '1wiVMF-bOePDKeaKpQx46FsjZ9pMn1C0RqpnxjNiajmw'
 SCOPES = ['https://www.googleapis.com/auth/spreadsheets']
 
 try:
-    creds = Credentials.from_service_account_file('credentials.json', scopes=SCOPES)
+    if os.path.exists('credentials.json'):
+        creds = Credentials.from_service_account_file('credentials.json', scopes=SCOPES)
+    elif os.getenv('GOOGLE_CREDENTIALS'):
+        creds = Credentials.from_service_account_info(json.loads(os.getenv('GOOGLE_CREDENTIALS')), scopes=SCOPES)
+    else:
+        raise FileNotFoundError("Google credentials not provided")
     service = build('sheets', 'v4', credentials=creds)
 except Exception as e:
     logging.error(f"Failed to initialize Google Sheets API: {str(e)}")
