@@ -5,7 +5,6 @@ import pandas as pd
 from google.oauth2.service_account import Credentials
 from googleapiclient.discovery import build
 from googleapiclient.errors import HttpError
-import httplib2
 import logging
 import time
 from curl_cffi import requests
@@ -28,8 +27,7 @@ try:
         creds = Credentials.from_service_account_info(json.loads(os.getenv('GOOGLE_CREDENTIALS')), scopes=SCOPES)
     else:
         raise FileNotFoundError("Google credentials not provided")
-    http = httplib2.Http(timeout=120)
-    service = build('sheets', 'v4', http=http, credentials=creds)
+    service = build('sheets', 'v4', credentials=creds)
 except Exception as e:
     logging.error(f"Failed to initialize Google Sheets API: {str(e)}")
     raise
