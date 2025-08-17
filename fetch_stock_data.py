@@ -128,22 +128,22 @@ results = [[r[0], r[1], r[2], r[3], r[4], r[5], r[6], timestamp] for r in result
 header = ["Ticker", "Weekly Close", "EMA12", "EMA26", "MACD", "Signal", "Hist", "Last Updated"]
 body = [header] + results
 
-# ----- Website and trade log generation -----
+# ----- Docs and trade log generation -----
 df = pd.DataFrame(results, columns=header)
 df["Momentum"] = (df["MACD"] > df["Signal"]).map({True: "Yes", False: "No"})
 
-web_dir = "website"
-os.makedirs(web_dir, exist_ok=True)
+docs_dir = "docs"
+os.makedirs(docs_dir, exist_ok=True)
 
 # Append to history
-history_path = os.path.join(web_dir, "history.csv")
+history_path = os.path.join(docs_dir, "history.csv")
 if os.path.exists(history_path):
     df.to_csv(history_path, mode="a", header=False, index=False)
 else:
     df.to_csv(history_path, index=False)
 
 # Build trade log based on momentum changes
-last_state_path = os.path.join(web_dir, "last_momentum.json")
+last_state_path = os.path.join(docs_dir, "last_momentum.json")
 if os.path.exists(last_state_path):
     with open(last_state_path, "r") as f:
         last_state = json.load(f)
@@ -162,7 +162,7 @@ for _, row in df.iterrows():
         trades.append([ticker, "SELL", price, timestamp])
     last_state[ticker] = momentum
 
-trade_log_path = os.path.join(web_dir, "trade_log.csv")
+trade_log_path = os.path.join(docs_dir, "trade_log.csv")
 if trades:
     trade_df = pd.DataFrame(trades, columns=["Ticker", "Action", "Price", "Timestamp"])
     if os.path.exists(trade_log_path):
@@ -187,9 +187,9 @@ html_content = (
     + trade_log_df.to_html(index=False)
     + "</body></html>"
 )
-with open(os.path.join(web_dir, "index.html"), "w", encoding="utf-8") as f:
+with open(os.path.join(docs_dir, "index.html"), "w", encoding="utf-8") as f:
     f.write(html_content)
-# ----- End website section -----
+# ----- End docs section -----
 
 # Update Google Sheet with retry logic
 sheet = service.spreadsheets()
