@@ -10,8 +10,8 @@ Google Sheets API: Stores raw data and hosts a dashboard.
 
 GitHub Actions: Runs the script every Saturday at midnight UTC.
 
-Static website: Each run appends results and a trade log to the `website/` folder.
-GitHub Pages: A dedicated workflow deploys the `website/` directory to GitHub Pages on every push to `main`.
+Static website: Each run appends results and a trade log to the `docs/` folder.
+GitHub Pages: A dedicated workflow deploys the `docs/` directory to GitHub Pages on every push to `main`.
 
 **How It Works**
 
@@ -21,7 +21,7 @@ Data Storage: The script pushes results to "Sheet1" in a Google Sheet with colum
 
 Dashboard: A "Dashboard" sheet pulls data from "Sheet1," adds company names from a "Stocks" sheet, calculates momentum status, and timestamps updates.
 
-Website: `website/index.html` displays the latest momentum table and a persistent trade log built from historical runs.
+Docs: `docs/index.html` displays the latest momentum table and a persistent trade log built from historical runs.
 
 Automation: GitHub Actions runs the script weekly, ensuring fresh data without lifting a finger.
 **Step-by-Step Setup**
@@ -79,4 +79,4 @@ Actions > "Weekly Stock Data Update" > Run workflow.
 5. Publish to GitHub Pages
 
 Enable GitHub Pages in your repository settings (set the source to "GitHub Actions").  
-The `Deploy Website` workflow automatically publishes the contents of `website/` to the Pages site whenever you push to the `main` branch.
+The `Deploy Docs` workflow automatically publishes the contents of `docs/` to the Pages site whenever you push to the `main` branch.
