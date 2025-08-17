@@ -10,6 +10,9 @@ Google Sheets API: Stores raw data and hosts a dashboard.
 
 GitHub Actions: Runs the script every Saturday at midnight UTC.
 
+Static website: Each run appends results and a trade log to the `website/` folder.
+GitHub Pages: A dedicated workflow deploys the `website/` directory to GitHub Pages on every push to `main`.
+
 **How It Works**
 
 Data Fetching: A Python script retrieves weekly closing prices for 100 tickers from Yahoo Finance, calculates MACD (EMA12, EMA26, Signal, Hist), and handles errors gracefully.
@@ -17,6 +20,8 @@ Data Fetching: A Python script retrieves weekly closing prices for 100 tickers f
 Data Storage: The script pushes results to "Sheet1" in a Google Sheet with columns: Ticker, Weekly Close, EMA12, EMA26, MACD, Signal, Hist.
 
 Dashboard: A "Dashboard" sheet pulls data from "Sheet1," adds company names from a "Stocks" sheet, calculates momentum status, and timestamps updates.
+
+Website: `website/index.html` displays the latest momentum table and a persistent trade log built from historical runs.
 
 Automation: GitHub Actions runs the script weekly, ensuring fresh data without lifting a finger.
 **Step-by-Step Setup**
@@ -70,3 +75,8 @@ Value: Paste the full credentials.json content.
 The workflow runs every Saturday at midnight UTC. Test it manually:
 
 Actions > "Weekly Stock Data Update" > Run workflow.
+
+5. Publish to GitHub Pages
+
+Enable GitHub Pages in your repository settings (set the source to "GitHub Actions").  
+The `Deploy Website` workflow automatically publishes the contents of `website/` to the Pages site whenever you push to the `main` branch.
