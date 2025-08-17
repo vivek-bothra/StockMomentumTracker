@@ -128,6 +128,69 @@ results = [[r[0], r[1], r[2], r[3], r[4], r[5], r[6], timestamp] for r in result
 header = ["Ticker", "Weekly Close", "EMA12", "EMA26", "MACD", "Signal", "Hist", "Last Updated"]
 body = [header] + results
 
+# ----- Website and trade log generation -----
+df = pd.DataFrame(results, columns=header)
+df["Momentum"] = (df["MACD"] > df["Signal"]).map({True: "Yes", False: "No"})
+
+web_dir = "website"
+os.makedirs(web_dir, exist_ok=True)
+
+# Append to history
+history_path = os.path.join(web_dir, "history.csv")
+if os.path.exists(history_path):
+    df.to_csv(history_path, mode="a", header=False, index=False)
+else:
+    df.to_csv(history_path, index=False)
+
+# Build trade log based on momentum changes
+last_state_path = os.path.join(web_dir, "last_momentum.json")
+if os.path.exists(last_state_path):
+    with open(last_state_path, "r") as f:
+        last_state = json.load(f)
+else:
+    last_state = {}
+
+trades = []
+for _, row in df.iterrows():
+    ticker = row["Ticker"]
+    momentum = row["Momentum"]
+    price = row["Weekly Close"]
+    prev = last_state.get(ticker)
+    if momentum == "Yes" and prev != "Yes":
+        trades.append([ticker, "BUY", price, timestamp])
+    elif momentum == "No" and prev == "Yes":
+        trades.append([ticker, "SELL", price, timestamp])
+    last_state[ticker] = momentum
+
+trade_log_path = os.path.join(web_dir, "trade_log.csv")
+if trades:
+    trade_df = pd.DataFrame(trades, columns=["Ticker", "Action", "Price", "Timestamp"])
+    if os.path.exists(trade_log_path):
+        trade_df.to_csv(trade_log_path, mode="a", header=False, index=False)
+    else:
+        trade_df.to_csv(trade_log_path, index=False)
+
+with open(last_state_path, "w") as f:
+    json.dump(last_state, f)
+
+# Generate simple HTML page
+trade_log_df = (
+    pd.read_csv(trade_log_path)
+    if os.path.exists(trade_log_path)
+    else pd.DataFrame(columns=["Ticker", "Action", "Price", "Timestamp"])
+)
+html_content = (
+    "<html><head><title>Stock Momentum Tracker</title></head><body>"
+    "<h1>Latest Momentum</h1>"
+    + df.to_html(index=False)
+    + "<h1>Trade Log</h1>"
+    + trade_log_df.to_html(index=False)
+    + "</body></html>"
+)
+with open(os.path.join(web_dir, "index.html"), "w", encoding="utf-8") as f:
+    f.write(html_content)
+# ----- End website section -----
+
 # Update Google Sheet with retry logic
 sheet = service.spreadsheets()
 clear_range = "Sheet1!A1:H1000"  # Clear a large range
