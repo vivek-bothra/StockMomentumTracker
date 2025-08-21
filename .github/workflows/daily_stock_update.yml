@@ -5,6 +5,9 @@ on:
     - cron: '0 0 * * 6' # Runs every Saturday at midnight UTC
   workflow_dispatch:
 
+permissions:
+  contents: write
+
 jobs:
   update-sheet:
     runs-on: ubuntu-latest
@@ -44,3 +47,15 @@ jobs:
 
       - name: Run script
         run: python fetch_stock_data.py
+
+      - name: Commit and push docs
+        run: |
+          git config user.name github-actions
+          git config user.email github-actions@github.com
+          git add docs
+          if git diff --cached --quiet; then
+            echo "No changes to commit"
+          else
+            git commit -m "Automated data update"
+            git push
+          fi
