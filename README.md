@@ -21,7 +21,7 @@ Data Storage: The script pushes results to "Sheet1" in a Google Sheet with colum
 
 Dashboard: A "Dashboard" sheet pulls data from "Sheet1," adds company names from a "Stocks" sheet, calculates momentum status, and timestamps updates.
 
-Docs: `docs/index.html` displays the latest momentum table and a persistent trade log built from historical runs.
+Docs: `docs/index.html` displays the latest momentum table and a persistent trade log built from historical runs. The page now uses Bootstrap for a mobile-friendly layout, and the trade log records realized profit for each completed trade.
 
 Automation: GitHub Actions runs the script weekly, ensuring fresh data without lifting a finger.
 **Step-by-Step Setup**
