@@ -150,6 +150,14 @@ if os.path.exists(last_state_path):
 else:
     last_state = {}
 
+# Track open positions to compute profits on SELL
+positions_path = os.path.join(docs_dir, "positions.json")
+if os.path.exists(positions_path):
+    with open(positions_path, "r") as f:
+        positions = json.load(f)
+else:
+    positions = {}
+
 trades = []
 for _, row in df.iterrows():
     ticker = row["Ticker"]
@@ -157,14 +165,17 @@ for _, row in df.iterrows():
     price = row["Weekly Close"]
     prev = last_state.get(ticker)
     if momentum == "Yes" and prev != "Yes":
-        trades.append([ticker, "BUY", price, timestamp])
+        trades.append([ticker, "BUY", price, timestamp, ""])
+        positions[ticker] = price
     elif momentum == "No" and prev == "Yes":
-        trades.append([ticker, "SELL", price, timestamp])
+        buy_price = positions.pop(ticker, price)
+        profit = round(price - buy_price, 2)
+        trades.append([ticker, "SELL", price, timestamp, profit])
     last_state[ticker] = momentum
 
 trade_log_path = os.path.join(docs_dir, "trade_log.csv")
 if trades:
-    trade_df = pd.DataFrame(trades, columns=["Ticker", "Action", "Price", "Timestamp"])
+    trade_df = pd.DataFrame(trades, columns=["Ticker", "Action", "Price", "Timestamp", "Profit"])
     if os.path.exists(trade_log_path):
         trade_df.to_csv(trade_log_path, mode="a", header=False, index=False)
     else:
@@ -172,21 +183,39 @@ if trades:
 
 with open(last_state_path, "w") as f:
     json.dump(last_state, f)
+with open(positions_path, "w") as f:
+    json.dump(positions, f)
 
 # Generate simple HTML page
 trade_log_df = (
     pd.read_csv(trade_log_path)
     if os.path.exists(trade_log_path)
-    else pd.DataFrame(columns=["Ticker", "Action", "Price", "Timestamp"])
+    else pd.DataFrame(columns=["Ticker", "Action", "Price", "Timestamp", "Profit"])
 )
-html_content = (
-    "<html><head><title>Stock Momentum Tracker</title></head><body>"
-    "<h1>Latest Momentum</h1>"
-    + df.to_html(index=False)
-    + "<h1>Trade Log</h1>"
-    + trade_log_df.to_html(index=False)
-    + "</body></html>"
-)
+if "Profit" not in trade_log_df.columns:
+    trade_log_df["Profit"] = ""
+
+# Build responsive HTML using Bootstrap
+html_content = f"""
+<html>
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Stock Momentum Tracker</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+</head>
+<body class="container my-4">
+    <h1 class="mb-4">Latest Momentum</h1>
+    <div class="table-responsive">
+        {df.to_html(index=False, classes='table table-striped')}
+    </div>
+    <h1 class="mt-5">Trade Log</h1>
+    <div class="table-responsive">
+        {trade_log_df.to_html(index=False, classes='table table-striped')}
+    </div>
+</body>
+</html>
+"""
 with open(os.path.join(docs_dir, "index.html"), "w", encoding="utf-8") as f:
     f.write(html_content)
 # ----- End docs section -----
