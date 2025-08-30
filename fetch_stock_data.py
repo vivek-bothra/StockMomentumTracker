@@ -20,17 +20,19 @@ logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(
 SHEET_ID = '1wiVMF-bOePDKeaKpQx46FsjZ9pMn1C0RqpnxjNiajmw'
 SCOPES = ['https://www.googleapis.com/auth/spreadsheets']
 
+service = None
 try:
     if os.path.exists('credentials.json'):
         creds = Credentials.from_service_account_file('credentials.json', scopes=SCOPES)
     elif os.getenv('GOOGLE_CREDENTIALS'):
-        creds = Credentials.from_service_account_info(json.loads(os.getenv('GOOGLE_CREDENTIALS')), scopes=SCOPES)
+        creds = Credentials.from_service_account_info(
+            json.loads(os.getenv('GOOGLE_CREDENTIALS')), scopes=SCOPES
+        )
     else:
         raise FileNotFoundError("Google credentials not provided")
     service = build('sheets', 'v4', credentials=creds)
 except Exception as e:
-    logging.error(f"Failed to initialize Google Sheets API: {str(e)}")
-    raise
+    logging.warning(f"Google Sheets API disabled: {str(e)}")
 
 # Ticker list (single ticker for testing)
 tickers = [
@@ -221,34 +223,40 @@ with open(os.path.join(docs_dir, "index.html"), "w", encoding="utf-8") as f:
 # ----- End docs section -----
 
 # Update Google Sheet with retry logic
-sheet = service.spreadsheets()
-clear_range = "Sheet1!A1:H1000"  # Clear a large range
-range_name = f"Sheet1!A1:H{len(results) + 1}"
-max_attempts = 5
+if service:
+    sheet = service.spreadsheets()
+    clear_range = "Sheet1!A1:H1000"  # Clear a large range
+    range_name = f"Sheet1!A1:H{len(results) + 1}"
+    max_attempts = 5
 
-for attempt in range(1, max_attempts + 1):
-    try:
-        logging.info(f"Clearing Google Sheet at range {clear_range}")
-        sheet.values().clear(spreadsheetId=SHEET_ID, range=clear_range).execute()
-        logging.info(f"Attempting to update Google Sheet at range {range_name}")
-        request = sheet.values().update(
-            spreadsheetId=SHEET_ID,
-            range=range_name,
-            valueInputOption="RAW",
-            body={"values": body}
-        ).execute()
-        logging.info(
-            f"Successfully updated Google Sheet with {len(results)} tickers: {request.get('updatedCells')} cells updated"
-        )
-        break
-    except (TimeoutError, HttpError) as e:
-        logging.warning(f"Attempt {attempt} failed: {str(e)}")
-        if attempt == max_attempts:
-            logging.error("Exceeded maximum attempts to update Google Sheet")
-            raise
-        time.sleep(2 ** attempt)
-    except Exception as e:
-        logging.error(f"Unexpected error updating Google Sheet: {str(e)}")
-        raise
+    for attempt in range(1, max_attempts + 1):
+        try:
+            logging.info(f"Clearing Google Sheet at range {clear_range}")
+            sheet.values().clear(spreadsheetId=SHEET_ID, range=clear_range).execute()
+            logging.info(f"Attempting to update Google Sheet at range {range_name}")
+            request = sheet.values().update(
+                spreadsheetId=SHEET_ID,
+                range=range_name,
+                valueInputOption="RAW",
+                body={"values": body}
+            ).execute()
+            logging.info(
+                f"Successfully updated Google Sheet with {len(results)} tickers: {request.get('updatedCells')} cells updated"
+            )
+            break
+        except (TimeoutError, HttpError) as e:
+            logging.warning(f"Attempt {attempt} failed: {str(e)}")
+            if attempt == max_attempts:
+                logging.error("Exceeded maximum attempts to update Google Sheet; skipping update")
+                break
+            time.sleep(2 ** attempt)
+        except Exception as e:
+            logging.error(f"Unexpected error updating Google Sheet: {str(e)}; skipping update")
+            break
 
-print(f"Updated Google Sheet with {len(results)} tickers.")
+    else:
+        logging.info("Unable to update Google Sheet after retries")
+
+    print(f"Updated Google Sheet with {len(results)} tickers.")
+else:
+    logging.info("Google Sheets service not initialized; skipping Sheet update.")
