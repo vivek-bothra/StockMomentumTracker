@@ -247,15 +247,12 @@ if service:
         except (TimeoutError, HttpError) as e:
             logging.warning(f"Attempt {attempt} failed: {str(e)}")
             if attempt == max_attempts:
-                logging.error("Exceeded maximum attempts to update Google Sheet; skipping update")
-                break
+                logging.error("Exceeded maximum attempts to update Google Sheet")
+                raise
             time.sleep(2 ** attempt)
         except Exception as e:
-            logging.error(f"Unexpected error updating Google Sheet: {str(e)}; skipping update")
-            break
-
-    else:
-        logging.info("Unable to update Google Sheet after retries")
+            logging.error(f"Unexpected error updating Google Sheet: {str(e)}")
+            raise
 
     print(f"Updated Google Sheet with {len(results)} tickers.")
 else:
