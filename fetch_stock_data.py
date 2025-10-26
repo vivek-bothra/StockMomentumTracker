@@ -1,13 +1,13 @@
 import os
 import json
-import yfinance as yf
+import logging
+import time
+
 import pandas as pd
+import yfinance as yf
 from google.oauth2.service_account import Credentials
 from googleapiclient.discovery import build
 from googleapiclient.errors import HttpError
-import logging
-import time
-from curl_cffi import requests
 from retrying import retry
 
 # Enable yfinance debug mode
@@ -33,6 +33,47 @@ try:
     service = build('sheets', 'v4', credentials=creds)
 except Exception as e:
     logging.warning(f"Google Sheets API disabled: {str(e)}")
+
+# HTTP session configuration
+
+
+def create_http_session():
+    """Create an HTTP session for yfinance with an optional curl_cffi backend."""
+
+    use_curl_cffi = os.getenv("USE_CURL_CFFI", "1").lower() not in {"0", "false", "no"}
+
+    if use_curl_cffi:
+        try:
+            from curl_cffi import requests as curl_requests  # type: ignore
+
+            session = curl_requests.Session(impersonate="chrome")
+            logging.info("Using curl_cffi session for Yahoo Finance requests.")
+            return session
+        except Exception as exc:  # pragma: no cover - defensive fallback
+            logging.warning(
+                "curl_cffi session unavailable (%s); falling back to requests.",
+                exc,
+            )
+
+    import requests
+
+    session = requests.Session()
+    session.headers.update(
+        {
+            "User-Agent": (
+                "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 "
+                "(KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36"
+            ),
+            "Accept": "text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8",
+            "Accept-Language": "en-US,en;q=0.9",
+            "Connection": "keep-alive",
+        }
+    )
+    logging.info("Using requests session for Yahoo Finance requests.")
+    return session
+
+
+session = create_http_session()
 
 # Ticker list (single ticker for testing)
 tickers = [
@@ -99,7 +140,6 @@ def get_stock_data(ticker, session):
 
 # Fetch data for all tickers with retry for rate-limited tickers
 results = []
-session = requests.Session(impersonate="chrome")  # Use curl_cffi with Chrome TLS fingerprint
 failed_tickers = []
 
 for ticker in tickers:
