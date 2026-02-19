@@ -8,10 +8,9 @@ import yfinance as yf
 from google.oauth2.service_account import Credentials
 from googleapiclient.discovery import build
 from googleapiclient.errors import HttpError
-from retrying import retry
-
-# Enable yfinance debug mode
-yf.enable_debug_mode()
+DEBUG_YFINANCE = os.getenv("YF_DEBUG", "0").lower() in {"1", "true", "yes"}
+if DEBUG_YFINANCE:
+    yf.enable_debug_mode()
 
 # Set up logging
 logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s')
@@ -75,6 +74,17 @@ def create_http_session():
 
 session = create_http_session()
 
+
+def can_reach_yahoo_finance(session):
+    """Check whether Yahoo Finance is reachable from the current runtime."""
+
+    try:
+        response = session.get("https://query2.finance.yahoo.com/v1/test/getcrumb", timeout=10)
+        response.raise_for_status()
+        return True, ""
+    except Exception as exc:
+        return False, str(exc)
+
 # Ticker list (single ticker for testing)
 tickers = [
     "GOOGL", "META", "AMZN", "BABA", "0700.HK", "NFLX", "BIDU", "JD", "EBAY", "MELI",
@@ -94,11 +104,36 @@ tickers = [
 def calculate_ema(data, period):
     return data.ewm(span=period, adjust=False).mean()
 
-# Retry decorator with exponential backoff
-@retry(stop_max_attempt_number=5, wait_exponential_multiplier=1000, wait_exponential_max=15000)
-def fetch_stock_history(ticker, session):
-    stock = yf.Ticker(ticker, session=session)
-    return stock.history(period="2y", auto_adjust=True)
+def fetch_stock_history(ticker, session, max_attempts=3):
+    """Fetch ticker history with bounded retries."""
+
+    retryable_markers = [
+        "Read timed out",
+        "Too Many Requests",
+        "Rate limited",
+        "temporarily unavailable",
+        "Connection reset",
+    ]
+
+    for attempt in range(1, max_attempts + 1):
+        try:
+            stock = yf.Ticker(ticker, session=session)
+            return stock.history(period="2y", auto_adjust=True)
+        except Exception as exc:
+            err_text = str(exc)
+            is_retryable = any(marker.lower() in err_text.lower() for marker in retryable_markers)
+            if not is_retryable or attempt == max_attempts:
+                raise
+            wait_seconds = min(2 ** attempt, 10)
+            logging.warning(
+                "Retryable fetch error for %s (attempt %s/%s): %s. Retrying in %ss.",
+                ticker,
+                attempt,
+                max_attempts,
+                err_text,
+                wait_seconds,
+            )
+            time.sleep(wait_seconds)
 
 # Fetch and calculate MACD for a ticker
 def get_stock_data(ticker, session):
@@ -138,29 +173,22 @@ def get_stock_data(ticker, session):
     finally:
         time.sleep(2)  # Modest delay to avoid rate limiting
 
-# Fetch data for all tickers with retry for rate-limited tickers
+# Fetch data for all tickers
 results = []
-failed_tickers = []
+reachable, connectivity_error = can_reach_yahoo_finance(session)
 
-for ticker in tickers:
-    result = get_stock_data(ticker, session)
-    results.append(result)
-    logging.info(f"Processed {ticker}: {result[1]}")
-    if "Rate limited" in str(result[1]):
-        failed_tickers.append(ticker)
-
-# Retry failed tickers after a longer delay
-if failed_tickers:
-    logging.info(f"Retrying {len(failed_tickers)} failed tickers after 120-second delay")
-    time.sleep(120)
-    for ticker in failed_tickers:
+if not reachable:
+    logging.error(
+        "Yahoo Finance is unreachable from this environment. "
+        "Skipping ticker fetches to avoid a long failing run. Error: %s",
+        connectivity_error,
+    )
+    results = [[ticker, f"Fetch Error: {connectivity_error}", 0, 0, 0, 0, 0] for ticker in tickers]
+else:
+    for ticker in tickers:
         result = get_stock_data(ticker, session)
-        # Update result in results list
-        for i, r in enumerate(results):
-            if r[0] == ticker:
-                results[i] = result
-                break
-        logging.info(f"Retry processed {ticker}: {result[1]}")
+        results.append(result)
+        logging.info(f"Processed {ticker}: {result[1]}")
 
 # Add timestamp column
 timestamp = pd.Timestamp.now().strftime("%Y-%m-%d %H:%M:%S")
@@ -206,13 +234,21 @@ for _, row in df.iterrows():
     momentum = row["Momentum"]
     price = row["Weekly Close"]
     prev = last_state.get(ticker)
+
+    try:
+        numeric_price = float(price)
+    except (TypeError, ValueError):
+        # Keep momentum state in sync even when data fetch failed.
+        last_state[ticker] = momentum
+        continue
+
     if momentum == "Yes" and prev != "Yes":
-        trades.append([ticker, "BUY", price, timestamp, ""])
-        positions[ticker] = price
+        trades.append([ticker, "BUY", numeric_price, timestamp, ""])
+        positions[ticker] = numeric_price
     elif momentum == "No" and prev == "Yes":
-        buy_price = positions.pop(ticker, price)
-        profit = round(price - buy_price, 2)
-        trades.append([ticker, "SELL", price, timestamp, profit])
+        buy_price = positions.pop(ticker, numeric_price)
+        profit = round(numeric_price - float(buy_price), 2)
+        trades.append([ticker, "SELL", numeric_price, timestamp, profit])
     last_state[ticker] = momentum
 
 trade_log_path = os.path.join(docs_dir, "trade_log.csv")
