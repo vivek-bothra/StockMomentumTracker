@@ -1,21 +1,1098 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
-  <meta charset="utf-8">
-  <title>Internet Momentum Portfolio</title>
-  <style>
-    body { background: #07080d; color: #dde1ed; font-family: monospace; 
-           display: flex; align-items: center; justify-content: center; 
-           height: 100vh; margin: 0; }
-    .msg { text-align: center; }
-    h1 { color: #4ade80; }
-    p  { color: #5a6070; }
-  </style>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Internet Momentum Portfolio</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600&family=Manrope:wght@400;600;700;800&display=swap" rel="stylesheet">
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+<style>
+:root{--bg:#07080d;--s1:#0f1018;--s2:#171820;--border:#23242f;--border2:#2e3040;
+      --green:#4ade80;--red:#f87171;--blue:#60a5fa;--amber:#fbbf24;--purple:#a78bfa;
+      --text:#dde1ed;--muted:#5a6070;--muted2:#3a3f50}
+*{box-sizing:border-box;margin:0;padding:0}
+body{background:var(--bg);color:var(--text);font-family:'Manrope',sans-serif;font-size:14px;line-height:1.65}
+.mono{font-family:'IBM Plex Mono',monospace}
+.wrap{max-width:1440px;margin:0 auto;padding:36px 28px}
+.hdr{display:flex;justify-content:space-between;align-items:flex-end;
+      padding-bottom:28px;border-bottom:1px solid var(--border);margin-bottom:36px}
+.hdr h1{font-size:clamp(20px,3.5vw,36px);font-weight:800;letter-spacing:-1.5px;
+         background:linear-gradient(120deg,var(--green),var(--blue));
+         -webkit-background-clip:text;-webkit-text-fill-color:transparent}
+.hdr p{font-size:11px;color:var(--muted);margin-top:4px;font-family:'IBM Plex Mono',monospace}
+.hdr-r{text-align:right;font-family:'IBM Plex Mono',monospace;font-size:11px;color:var(--muted);line-height:1.9}
+.stat-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(155px,1fr));gap:14px;margin-bottom:36px}
+.card{background:var(--s1);border:1px solid var(--border);border-radius:14px;padding:18px 20px;transition:border-color .2s}
+.card:hover{border-color:var(--border2)}
+.card .lbl{font-size:10px;font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:var(--muted);margin-bottom:10px}
+.card .val{font-size:23px;font-weight:800;font-family:'IBM Plex Mono',monospace;line-height:1}
+.card .sub{font-size:11px;color:var(--muted);margin-top:6px;font-family:'IBM Plex Mono',monospace}
+.green{color:var(--green)}.red{color:var(--red)}.blue{color:var(--blue)}.amber{color:var(--amber)}
+.cap-track{background:var(--s2);border-radius:99px;height:5px;overflow:hidden;margin-top:10px}
+.cap-fill{background:linear-gradient(90deg,var(--green),var(--blue));height:100%;border-radius:99px}
+.section{margin-bottom:44px}
+.sec-hdr{display:flex;align-items:center;gap:12px;margin-bottom:14px}
+.sec-hdr h2{font-size:15px;font-weight:700;letter-spacing:-.3px}
+.tag{font-size:10px;font-weight:700;letter-spacing:.06em;text-transform:uppercase;
+      background:var(--s2);border:1px solid var(--border);color:var(--muted);
+      border-radius:99px;padding:3px 10px;white-space:nowrap}
+.chart-box{background:var(--s1);border:1px solid var(--border);border-radius:16px;padding:24px}
+.tbl-wrap{overflow-x:auto;border-radius:12px;border:1px solid var(--border)}
+table{width:100%;border-collapse:collapse;font-size:13px}
+thead{background:var(--s2)}
+th{padding:10px 13px;text-align:left;font-size:10px;font-weight:700;
+    letter-spacing:.07em;text-transform:uppercase;color:var(--muted);
+    border-bottom:1px solid var(--border);white-space:nowrap}
+tr{border-bottom:1px solid var(--border);transition:background .12s}
+tr:last-child{border-bottom:none}
+tr:hover{background:var(--s2)}
+tr.row-yes{background:rgba(74,222,128,.03)}
+tr.row-held{background:rgba(96,165,250,.05);border-left:2px solid var(--blue)}
+td{padding:9px 13px;vertical-align:middle}
+.badge-yes{background:rgba(74,222,128,.15);color:var(--green);border:1px solid rgba(74,222,128,.3);
+            border-radius:5px;padding:2px 7px;font-size:10px;font-weight:700;font-family:'IBM Plex Mono',monospace}
+.badge-no{background:rgba(248,113,113,.1);color:var(--red);border:1px solid rgba(248,113,113,.2);
+           border-radius:5px;padding:2px 7px;font-size:10px;font-weight:700;font-family:'IBM Plex Mono',monospace}
+.badge-held{background:rgba(96,165,250,.15);color:var(--blue);border:1px solid rgba(96,165,250,.3);
+             border-radius:5px;padding:2px 7px;font-size:10px;font-weight:700;font-family:'IBM Plex Mono',monospace}
+.action-buy{background:rgba(74,222,128,.12);color:var(--green);border-radius:4px;
+             padding:2px 8px;font-size:10px;font-weight:700;font-family:'IBM Plex Mono',monospace}
+.action-sell{background:rgba(248,113,113,.1);color:var(--red);border-radius:4px;
+              padding:2px 8px;font-size:10px;font-weight:700;font-family:'IBM Plex Mono',monospace}
+.warn-box{background:rgba(251,191,36,.07);border:1px solid rgba(251,191,36,.25);
+           border-radius:10px;padding:14px 18px;margin-bottom:20px;color:var(--amber)}
+.warn-box ul{padding-left:18px;margin-top:6px;font-family:'IBM Plex Mono',monospace;font-size:12px}
+.cash-banner{background:rgba(251,191,36,.1);border:1px solid rgba(251,191,36,.3);
+              border-radius:12px;padding:18px 24px;margin-bottom:24px;
+              text-align:center;font-size:14px;font-weight:700;color:var(--amber)}
+footer{margin-top:60px;padding-top:22px;border-top:1px solid var(--border);
+        font-size:11px;color:var(--muted);font-family:'IBM Plex Mono',monospace;
+        text-align:center;line-height:1.9}
+@media(max-width:640px){.hdr{flex-direction:column;align-items:flex-start;gap:10px}.hdr-r{text-align:left}}
+</style>
 </head>
-<body>
-  <div class="msg">
+<body><div class="wrap">
+
+<div class="hdr">
+  <div>
     <h1>Internet Momentum Portfolio</h1>
-    <p>First scan in progress — check back in 10 minutes.</p>
+    <p>Signal: MACD&gt;0 AND Hist&gt;0 · Weekly · Rank: Hist/Close · Max 20 positions · Hold until signal off</p>
   </div>
-</body>
-</html>
+  <div class="hdr-r">Last scan: 2026-02-25<br>Inception: 2026-02-25<br>Starting NAV: $100,000</div>
+</div>
+
+<div class="warn-box"><strong>⚠ Data Warnings (2)</strong><ul><li>VMEO: error: HTTP Error 404: </li><li>TKWY.AS: error: HTTP Error 404: </li></ul></div><div class="cash-banner">⚠ PORTFOLIO IN CASH — only 8 stocks qualified this week (minimum 10 required). All positions exited.</div>
+
+<div class="stat-grid">
+  <div class="card"><div class="lbl">Portfolio NAV</div>
+    <div class="val blue">$100,000</div><div class="sub">from $100,000</div></div>
+  <div class="card"><div class="lbl">Total Return</div>
+    <div class="val green">+0.00%</div>
+    <div class="sub">since inception</div></div>
+  <div class="card"><div class="lbl">This Week</div>
+    <div class="val green">+0.00%</div>
+    <div class="sub">weekly return</div></div>
+  <div class="card"><div class="lbl">Holdings</div>
+    <div class="val blue">0<span style="font-size:14px;color:var(--muted)">/20</span></div>
+    <div class="cap-track"><div class="cap-fill" style="width:0%"></div></div></div>
+  <div class="card"><div class="lbl">Qualifying</div>
+    <div class="val amber">8</div>
+    <div class="sub">of 93 scanned</div></div>
+  <div class="card"><div class="lbl">Universe</div>
+    <div class="val blue">95</div><div class="sub">tickers tracked</div></div>
+</div>
+
+<div class="section">
+  <div class="sec-hdr"><h2>NAV History</h2><span class="tag">$100k starting capital</span></div>
+  <div class="chart-box"><canvas id="navChart" height="75"></canvas></div>
+</div>
+
+<div class="section">
+  <div class="sec-hdr"><h2>Current Holdings</h2>
+    <span class="tag">0 positions · equal weight at entry · hold until signal off</span></div>
+  <p style="padding:20px;color:var(--muted);font-family:IBM Plex Mono,monospace">No positions — portfolio in cash.</p>
+</div>
+
+<div class="section">
+  <div class="sec-hdr"><h2>This Week's Scan</h2>
+    <span class="tag">8 qualifying · sorted by rank score</span></div>
+  <div class="tbl-wrap"><table>
+    <thead><tr><th>Ticker</th><th>Name</th><th>Region</th><th>Close</th>
+      <th>MACD</th><th>Signal</th><th>Hist</th><th>Rank Score</th><th>Status</th></tr></thead>
+    <tbody>
+        <tr class="row-yes">
+          <td><strong>HUYA</strong></td><td>Huya</td>
+          <td class="mono">US</td>
+          <td class="mono">$3.8300</td>
+          <td class="mono">+0.3147</td>
+          <td class="mono">+0.2447</td>
+          <td class="mono">+0.0700</td>
+          <td class="mono">0.01828</td>
+          <td><span class="badge-yes">YES</span> </td>
+        </tr>
+        <tr class="row-yes">
+          <td><strong>4385.T</strong></td><td>Mercari</td>
+          <td class="mono">JP</td>
+          <td class="mono">$3,452.0000</td>
+          <td class="mono">+278.2144</td>
+          <td class="mono">+230.9309</td>
+          <td class="mono">+47.2835</td>
+          <td class="mono">0.01370</td>
+          <td><span class="badge-yes">YES</span> </td>
+        </tr>
+        <tr class="row-yes">
+          <td><strong>AKAM</strong></td><td>Akamai</td>
+          <td class="mono">US</td>
+          <td class="mono">$100.1300</td>
+          <td class="mono">+5.2709</td>
+          <td class="mono">+3.9523</td>
+          <td class="mono">+1.3187</td>
+          <td class="mono">0.01317</td>
+          <td><span class="badge-yes">YES</span> </td>
+        </tr>
+        <tr class="row-yes">
+          <td><strong>069080.KS</strong></td><td>Kakao Games</td>
+          <td class="mono">KR</td>
+          <td class="mono">$13,660.0000</td>
+          <td class="mono">+331.7004</td>
+          <td class="mono">+174.4405</td>
+          <td class="mono">+157.2599</td>
+          <td class="mono">0.01151</td>
+          <td><span class="badge-yes">YES</span> </td>
+        </tr>
+        <tr class="row-yes">
+          <td><strong>ASC.L</strong></td><td>ASOS</td>
+          <td class="mono">UK</td>
+          <td class="mono">$281.0475</td>
+          <td class="mono">+1.5013</td>
+          <td class="mono">-1.5705</td>
+          <td class="mono">+3.0718</td>
+          <td class="mono">0.01093</td>
+          <td><span class="badge-yes">YES</span> </td>
+        </tr>
+        <tr class="row-yes">
+          <td><strong>036570.KS</strong></td><td>NCSoft</td>
+          <td class="mono">KR</td>
+          <td class="mono">$237,500.0000</td>
+          <td class="mono">+7700.9951</td>
+          <td class="mono">+6748.9692</td>
+          <td class="mono">+952.0259</td>
+          <td class="mono">0.00401</td>
+          <td><span class="badge-yes">YES</span> </td>
+        </tr>
+        <tr class="row-yes">
+          <td><strong>ZM</strong></td><td>Zoom</td>
+          <td class="mono">US</td>
+          <td class="mono">$87.5100</td>
+          <td class="mono">+2.4499</td>
+          <td class="mono">+2.2913</td>
+          <td class="mono">+0.1586</td>
+          <td class="mono">0.00181</td>
+          <td><span class="badge-yes">YES</span> </td>
+        </tr>
+        <tr class="row-yes">
+          <td><strong>BILI</strong></td><td>Bilibili</td>
+          <td class="mono">US</td>
+          <td class="mono">$29.6800</td>
+          <td class="mono">+1.8822</td>
+          <td class="mono">+1.8512</td>
+          <td class="mono">+0.0310</td>
+          <td class="mono">0.00104</td>
+          <td><span class="badge-yes">YES</span> </td>
+        </tr>
+        <tr class="">
+          <td><strong>259960.KS</strong></td><td>Krafton</td>
+          <td class="mono">KR</td>
+          <td class="mono">$266,000.0000</td>
+          <td class="mono">-14983.1793</td>
+          <td class="mono">-20007.7478</td>
+          <td class="mono">+5024.5685</td>
+          <td class="mono">0.01889</td>
+          <td><span class="badge-no">NO</span> </td>
+        </tr>
+        <tr class="">
+          <td><strong>TRVG</strong></td><td>Trivago</td>
+          <td class="mono">US</td>
+          <td class="mono">$2.8800</td>
+          <td class="mono">-0.1304</td>
+          <td class="mono">-0.1513</td>
+          <td class="mono">+0.0209</td>
+          <td class="mono">0.00726</td>
+          <td><span class="badge-no">NO</span> </td>
+        </tr>
+        <tr class="">
+          <td><strong>HFG.DE</strong></td><td>HomeToGo</td>
+          <td class="mono">EU</td>
+          <td class="mono">$4.7810</td>
+          <td class="mono">-0.7022</td>
+          <td class="mono">-0.7016</td>
+          <td class="mono">-0.0006</td>
+          <td class="mono">-0.00013</td>
+          <td><span class="badge-no">NO</span> </td>
+        </tr>
+        <tr class="">
+          <td><strong>META</strong></td><td>Meta Platforms</td>
+          <td class="mono">US</td>
+          <td class="mono">$639.3000</td>
+          <td class="mono">-8.1464</td>
+          <td class="mono">-7.3085</td>
+          <td class="mono">-0.8379</td>
+          <td class="mono">-0.00131</td>
+          <td><span class="badge-no">NO</span> </td>
+        </tr>
+        <tr class="">
+          <td><strong>NYKAA.NS</strong></td><td>Nykaa</td>
+          <td class="mono">IN</td>
+          <td class="mono">$265.4800</td>
+          <td class="mono">+9.4275</td>
+          <td class="mono">+10.1091</td>
+          <td class="mono">-0.6815</td>
+          <td class="mono">-0.00257</td>
+          <td><span class="badge-no">NO</span> </td>
+        </tr>
+        <tr class="">
+          <td><strong>ABNB</strong></td><td>Airbnb</td>
+          <td class="mono">US</td>
+          <td class="mono">$125.6600</td>
+          <td class="mono">-0.1798</td>
+          <td class="mono">+0.1725</td>
+          <td class="mono">-0.3522</td>
+          <td class="mono">-0.00280</td>
+          <td><span class="badge-no">NO</span> </td>
+        </tr>
+        <tr class="">
+          <td><strong>BMBL</strong></td><td>Bumble</td>
+          <td class="mono">US</td>
+          <td class="mono">$2.9100</td>
+          <td class="mono">-0.6955</td>
+          <td class="mono">-0.6869</td>
+          <td class="mono">-0.0086</td>
+          <td class="mono">-0.00296</td>
+          <td><span class="badge-no">NO</span> </td>
+        </tr>
+        <tr class="">
+          <td><strong>MELI</strong></td><td>MercadoLibre</td>
+          <td class="mono">US</td>
+          <td class="mono">$1,922.5601</td>
+          <td class="mono">-65.3056</td>
+          <td class="mono">-58.4314</td>
+          <td class="mono">-6.8741</td>
+          <td class="mono">-0.00358</td>
+          <td><span class="badge-no">NO</span> </td>
+        </tr>
+        <tr class="">
+          <td><strong>035420.KS</strong></td><td>NAVER</td>
+          <td class="mono">KR</td>
+          <td class="mono">$253,000.0000</td>
+          <td class="mono">+5386.3558</td>
+          <td class="mono">+6295.2943</td>
+          <td class="mono">-908.9385</td>
+          <td class="mono">-0.00359</td>
+          <td><span class="badge-no">NO</span> </td>
+        </tr>
+        <tr class="">
+          <td><strong>MTCH</strong></td><td>Match Group</td>
+          <td class="mono">US</td>
+          <td class="mono">$31.2900</td>
+          <td class="mono">-0.5196</td>
+          <td class="mono">-0.3770</td>
+          <td class="mono">-0.1426</td>
+          <td class="mono">-0.00456</td>
+          <td><span class="badge-no">NO</span> </td>
+        </tr>
+        <tr class="">
+          <td><strong>JD</strong></td><td>JD.com</td>
+          <td class="mono">US</td>
+          <td class="mono">$27.5200</td>
+          <td class="mono">-1.3306</td>
+          <td class="mono">-1.1978</td>
+          <td class="mono">-0.1328</td>
+          <td class="mono">-0.00483</td>
+          <td><span class="badge-no">NO</span> </td>
+        </tr>
+        <tr class="">
+          <td><strong>DHER.DE</strong></td><td>Delivery Hero</td>
+          <td class="mono">EU</td>
+          <td class="mono">$19.6650</td>
+          <td class="mono">-0.5547</td>
+          <td class="mono">-0.4516</td>
+          <td class="mono">-0.1030</td>
+          <td class="mono">-0.00524</td>
+          <td><span class="badge-no">NO</span> </td>
+        </tr>
+        <tr class="">
+          <td><strong>EBAY</strong></td><td>eBay</td>
+          <td class="mono">US</td>
+          <td class="mono">$85.3000</td>
+          <td class="mono">+1.0588</td>
+          <td class="mono">+1.6909</td>
+          <td class="mono">-0.6322</td>
+          <td class="mono">-0.00741</td>
+          <td><span class="badge-no">NO</span> </td>
+        </tr>
+        <tr class="">
+          <td><strong>NU</strong></td><td>Nu Holdings</td>
+          <td class="mono">US</td>
+          <td class="mono">$16.5300</td>
+          <td class="mono">+0.7436</td>
+          <td class="mono">+0.8793</td>
+          <td class="mono">-0.1357</td>
+          <td class="mono">-0.00821</td>
+          <td><span class="badge-no">NO</span> </td>
+        </tr>
+        <tr class="">
+          <td><strong>BIDU</strong></td><td>Baidu</td>
+          <td class="mono">US</td>
+          <td class="mono">$133.6300</td>
+          <td class="mono">+9.1676</td>
+          <td class="mono">+10.4809</td>
+          <td class="mono">-1.3133</td>
+          <td class="mono">-0.00983</td>
+          <td><span class="badge-no">NO</span> </td>
+        </tr>
+        <tr class="">
+          <td><strong>3690.HK</strong></td><td>Meituan</td>
+          <td class="mono">HK</td>
+          <td class="mono">$82.7000</td>
+          <td class="mono">-7.9618</td>
+          <td class="mono">-7.0643</td>
+          <td class="mono">-0.8975</td>
+          <td class="mono">-0.01085</td>
+          <td><span class="badge-no">NO</span> </td>
+        </tr>
+        <tr class="">
+          <td><strong>EA</strong></td><td>Electronic Arts</td>
+          <td class="mono">US</td>
+          <td class="mono">$201.0000</td>
+          <td class="mono">+6.7677</td>
+          <td class="mono">+8.9961</td>
+          <td class="mono">-2.2284</td>
+          <td class="mono">-0.01109</td>
+          <td><span class="badge-no">NO</span> </td>
+        </tr>
+        <tr class="">
+          <td><strong>035720.KS</strong></td><td>Kakao</td>
+          <td class="mono">KR</td>
+          <td class="mono">$57,400.0000</td>
+          <td class="mono">+304.6374</td>
+          <td class="mono">+1002.2534</td>
+          <td class="mono">-697.6160</td>
+          <td class="mono">-0.01215</td>
+          <td><span class="badge-no">NO</span> </td>
+        </tr>
+        <tr class="">
+          <td><strong>ALE.WA</strong></td><td>Allegro</td>
+          <td class="mono">PL</td>
+          <td class="mono">$28.1150</td>
+          <td class="mono">-1.4520</td>
+          <td class="mono">-1.0828</td>
+          <td class="mono">-0.3693</td>
+          <td class="mono">-0.01314</td>
+          <td><span class="badge-no">NO</span> </td>
+        </tr>
+        <tr class="">
+          <td><strong>1024.HK</strong></td><td>Kuaishou</td>
+          <td class="mono">HK</td>
+          <td class="mono">$66.3500</td>
+          <td class="mono">+0.5673</td>
+          <td class="mono">+1.4936</td>
+          <td class="mono">-0.9264</td>
+          <td class="mono">-0.01396</td>
+          <td><span class="badge-no">NO</span> </td>
+        </tr>
+        <tr class="">
+          <td><strong>ZAL.DE</strong></td><td>Zalando</td>
+          <td class="mono">EU</td>
+          <td class="mono">$20.3600</td>
+          <td class="mono">-1.3813</td>
+          <td class="mono">-1.0966</td>
+          <td class="mono">-0.2848</td>
+          <td class="mono">-0.01399</td>
+          <td><span class="badge-no">NO</span> </td>
+        </tr>
+        <tr class="">
+          <td><strong>BABA</strong></td><td>Alibaba</td>
+          <td class="mono">US</td>
+          <td class="mono">$153.1100</td>
+          <td class="mono">+4.5435</td>
+          <td class="mono">+6.7226</td>
+          <td class="mono">-2.1791</td>
+          <td class="mono">-0.01423</td>
+          <td><span class="badge-no">NO</span> </td>
+        </tr>
+        <tr class="">
+          <td><strong>GOOGL</strong></td><td>Alphabet</td>
+          <td class="mono">US</td>
+          <td class="mono">$310.9000</td>
+          <td class="mono">+23.4679</td>
+          <td class="mono">+27.9532</td>
+          <td class="mono">-4.4852</td>
+          <td class="mono">-0.01443</td>
+          <td><span class="badge-no">NO</span> </td>
+        </tr>
+        <tr class="">
+          <td><strong>ETSY</strong></td><td>Etsy</td>
+          <td class="mono">US</td>
+          <td class="mono">$54.4000</td>
+          <td class="mono">-1.4580</td>
+          <td class="mono">-0.6677</td>
+          <td class="mono">-0.7903</td>
+          <td class="mono">-0.01453</td>
+          <td><span class="badge-no">NO</span> </td>
+        </tr>
+        <tr class="">
+          <td><strong>PDD</strong></td><td>PDD Holdings</td>
+          <td class="mono">US</td>
+          <td class="mono">$106.8800</td>
+          <td class="mono">-4.1276</td>
+          <td class="mono">-2.5728</td>
+          <td class="mono">-1.5549</td>
+          <td class="mono">-0.01455</td>
+          <td><span class="badge-no">NO</span> </td>
+        </tr>
+        <tr class="">
+          <td><strong>TTD</strong></td><td>The Trade Desk</td>
+          <td class="mono">US</td>
+          <td class="mono">$24.9400</td>
+          <td class="mono">-8.3549</td>
+          <td class="mono">-7.9756</td>
+          <td class="mono">-0.3793</td>
+          <td class="mono">-0.01521</td>
+          <td><span class="badge-no">NO</span> </td>
+        </tr>
+        <tr class="">
+          <td><strong>IQ</strong></td><td>iQIYI</td>
+          <td class="mono">US</td>
+          <td class="mono">$1.7900</td>
+          <td class="mono">-0.0809</td>
+          <td class="mono">-0.0521</td>
+          <td class="mono">-0.0288</td>
+          <td class="mono">-0.01609</td>
+          <td><span class="badge-no">NO</span> </td>
+        </tr>
+        <tr class="">
+          <td><strong>JUSTDIAL.NS</strong></td><td>Just Dial</td>
+          <td class="mono">IN</td>
+          <td class="mono">$575.3500</td>
+          <td class="mono">-56.8479</td>
+          <td class="mono">-47.5419</td>
+          <td class="mono">-9.3061</td>
+          <td class="mono">-0.01617</td>
+          <td><span class="badge-no">NO</span> </td>
+        </tr>
+        <tr class="">
+          <td><strong>REA.AX</strong></td><td>REA Group</td>
+          <td class="mono">AU</td>
+          <td class="mono">$155.6800</td>
+          <td class="mono">-16.3068</td>
+          <td class="mono">-13.7681</td>
+          <td class="mono">-2.5387</td>
+          <td class="mono">-0.01631</td>
+          <td><span class="badge-no">NO</span> </td>
+        </tr>
+        <tr class="">
+          <td><strong>RMV.L</strong></td><td>Rightmove</td>
+          <td class="mono">UK</td>
+          <td class="mono">$420.9000</td>
+          <td class="mono">-65.8263</td>
+          <td class="mono">-58.6526</td>
+          <td class="mono">-7.1737</td>
+          <td class="mono">-0.01704</td>
+          <td><span class="badge-no">NO</span> </td>
+        </tr>
+        <tr class="">
+          <td><strong>DBX</strong></td><td>Dropbox</td>
+          <td class="mono">US</td>
+          <td class="mono">$24.2800</td>
+          <td class="mono">-1.0811</td>
+          <td class="mono">-0.6465</td>
+          <td class="mono">-0.4346</td>
+          <td class="mono">-0.01790</td>
+          <td><span class="badge-no">NO</span> </td>
+        </tr>
+        <tr class="">
+          <td><strong>AMZN</strong></td><td>Amazon</td>
+          <td class="mono">US</td>
+          <td class="mono">$208.5600</td>
+          <td class="mono">-2.2967</td>
+          <td class="mono">+1.5613</td>
+          <td class="mono">-3.8579</td>
+          <td class="mono">-0.01850</td>
+          <td><span class="badge-no">NO</span> </td>
+        </tr>
+        <tr class="">
+          <td><strong>GDDY</strong></td><td>GoDaddy</td>
+          <td class="mono">US</td>
+          <td class="mono">$92.3000</td>
+          <td class="mono">-15.1188</td>
+          <td class="mono">-13.3451</td>
+          <td class="mono">-1.7736</td>
+          <td class="mono">-0.01922</td>
+          <td><span class="badge-no">NO</span> </td>
+        </tr>
+        <tr class="">
+          <td><strong>POLICYBZR.NS</strong></td><td>PB Fintech</td>
+          <td class="mono">IN</td>
+          <td class="mono">$1,518.9000</td>
+          <td class="mono">-62.0429</td>
+          <td class="mono">-27.5957</td>
+          <td class="mono">-34.4472</td>
+          <td class="mono">-0.02268</td>
+          <td><span class="badge-no">NO</span> </td>
+        </tr>
+        <tr class="">
+          <td><strong>TWLO</strong></td><td>Twilio</td>
+          <td class="mono">US</td>
+          <td class="mono">$113.8500</td>
+          <td class="mono">+0.3288</td>
+          <td class="mono">+3.0118</td>
+          <td class="mono">-2.6830</td>
+          <td class="mono">-0.02357</td>
+          <td><span class="badge-no">NO</span> </td>
+        </tr>
+        <tr class="">
+          <td><strong>AUTO.L</strong></td><td>Auto Trader</td>
+          <td class="mono">UK</td>
+          <td class="mono">$477.1000</td>
+          <td class="mono">-76.0427</td>
+          <td class="mono">-64.7704</td>
+          <td class="mono">-11.2723</td>
+          <td class="mono">-0.02363</td>
+          <td><span class="badge-no">NO</span> </td>
+        </tr>
+        <tr class="">
+          <td><strong>SE</strong></td><td>Sea Limited</td>
+          <td class="mono">US</td>
+          <td class="mono">$107.1100</td>
+          <td class="mono">-12.0163</td>
+          <td class="mono">-9.4475</td>
+          <td class="mono">-2.5688</td>
+          <td class="mono">-0.02398</td>
+          <td><span class="badge-no">NO</span> </td>
+        </tr>
+        <tr class="">
+          <td><strong>NFLX</strong></td><td>Netflix</td>
+          <td class="mono">US</td>
+          <td class="mono">$78.0400</td>
+          <td class="mono">-9.0694</td>
+          <td class="mono">-7.1716</td>
+          <td class="mono">-1.8978</td>
+          <td class="mono">-0.02432</td>
+          <td><span class="badge-no">NO</span> </td>
+        </tr>
+        <tr class="">
+          <td><strong>UBER</strong></td><td>Uber</td>
+          <td class="mono">US</td>
+          <td class="mono">$71.3800</td>
+          <td class="mono">-4.1182</td>
+          <td class="mono">-2.3376</td>
+          <td class="mono">-1.7806</td>
+          <td class="mono">-0.02494</td>
+          <td><span class="badge-no">NO</span> </td>
+        </tr>
+        <tr class="">
+          <td><strong>SSTK</strong></td><td>Shutterstock</td>
+          <td class="mono">US</td>
+          <td class="mono">$15.7900</td>
+          <td class="mono">-0.9913</td>
+          <td class="mono">-0.5972</td>
+          <td class="mono">-0.3941</td>
+          <td class="mono">-0.02496</td>
+          <td><span class="badge-no">NO</span> </td>
+        </tr>
+        <tr class="">
+          <td><strong>SWIGGY.NS</strong></td><td>Swiggy</td>
+          <td class="mono">IN</td>
+          <td class="mono">$308.3500</td>
+          <td class="mono">-22.5185</td>
+          <td class="mono">-14.7663</td>
+          <td class="mono">-7.7522</td>
+          <td class="mono">-0.02514</td>
+          <td><span class="badge-no">NO</span> </td>
+        </tr>
+        <tr class="">
+          <td><strong>GRPN</strong></td><td>Groupon</td>
+          <td class="mono">US</td>
+          <td class="mono">$12.2600</td>
+          <td class="mono">-2.5906</td>
+          <td class="mono">-2.2638</td>
+          <td class="mono">-0.3268</td>
+          <td class="mono">-0.02666</td>
+          <td><span class="badge-no">NO</span> </td>
+        </tr>
+        <tr class="">
+          <td><strong>4755.T</strong></td><td>Rakuten</td>
+          <td class="mono">JP</td>
+          <td class="mono">$816.9000</td>
+          <td class="mono">-11.2151</td>
+          <td class="mono">+10.5858</td>
+          <td class="mono">-21.8009</td>
+          <td class="mono">-0.02669</td>
+          <td><span class="badge-no">NO</span> </td>
+        </tr>
+        <tr class="">
+          <td><strong>GRAB</strong></td><td>Grab Holdings</td>
+          <td class="mono">US</td>
+          <td class="mono">$4.1500</td>
+          <td class="mono">-0.2799</td>
+          <td class="mono">-0.1639</td>
+          <td class="mono">-0.1160</td>
+          <td class="mono">-0.02795</td>
+          <td><span class="badge-no">NO</span> </td>
+        </tr>
+        <tr class="">
+          <td><strong>NET</strong></td><td>Cloudflare</td>
+          <td class="mono">US</td>
+          <td class="mono">$163.8100</td>
+          <td class="mono">-4.9370</td>
+          <td class="mono">-0.3313</td>
+          <td class="mono">-4.6056</td>
+          <td class="mono">-0.02812</td>
+          <td><span class="badge-no">NO</span> </td>
+        </tr>
+        <tr class="">
+          <td><strong>NAUKRI.NS</strong></td><td>Info Edge</td>
+          <td class="mono">IN</td>
+          <td class="mono">$1,038.6000</td>
+          <td class="mono">-70.3499</td>
+          <td class="mono">-40.2846</td>
+          <td class="mono">-30.0653</td>
+          <td class="mono">-0.02895</td>
+          <td><span class="badge-no">NO</span> </td>
+        </tr>
+        <tr class="">
+          <td><strong>TME</strong></td><td>Tencent Music</td>
+          <td class="mono">US</td>
+          <td class="mono">$14.9700</td>
+          <td class="mono">-1.2308</td>
+          <td class="mono">-0.7935</td>
+          <td class="mono">-0.4374</td>
+          <td class="mono">-0.02922</td>
+          <td><span class="badge-no">NO</span> </td>
+        </tr>
+        <tr class="">
+          <td><strong>NTES</strong></td><td>NetEase</td>
+          <td class="mono">US</td>
+          <td class="mono">$117.1800</td>
+          <td class="mono">-2.8730</td>
+          <td class="mono">+0.5696</td>
+          <td class="mono">-3.4425</td>
+          <td class="mono">-0.02938</td>
+          <td><span class="badge-no">NO</span> </td>
+        </tr>
+        <tr class="">
+          <td><strong>CHWY</strong></td><td>Chewy</td>
+          <td class="mono">US</td>
+          <td class="mono">$25.4800</td>
+          <td class="mono">-2.7737</td>
+          <td class="mono">-2.0189</td>
+          <td class="mono">-0.7548</td>
+          <td class="mono">-0.02962</td>
+          <td><span class="badge-no">NO</span> </td>
+        </tr>
+        <tr class="">
+          <td><strong>0700.HK</strong></td><td>Tencent</td>
+          <td class="mono">HK</td>
+          <td class="mono">$522.5000</td>
+          <td class="mono">-9.7158</td>
+          <td class="mono">+5.7891</td>
+          <td class="mono">-15.5049</td>
+          <td class="mono">-0.02967</td>
+          <td><span class="badge-no">NO</span> </td>
+        </tr>
+        <tr class="">
+          <td><strong>PAYTM.NS</strong></td><td>Paytm</td>
+          <td class="mono">IN</td>
+          <td class="mono">$1,128.3000</td>
+          <td class="mono">+6.4337</td>
+          <td class="mono">+40.2132</td>
+          <td class="mono">-33.7795</td>
+          <td class="mono">-0.02994</td>
+          <td><span class="badge-no">NO</span> </td>
+        </tr>
+        <tr class="">
+          <td><strong>TTWO</strong></td><td>Take-Two Interactive</td>
+          <td class="mono">US</td>
+          <td class="mono">$204.1900</td>
+          <td class="mono">-8.1781</td>
+          <td class="mono">-1.6298</td>
+          <td class="mono">-6.5483</td>
+          <td class="mono">-0.03207</td>
+          <td><span class="badge-no">NO</span> </td>
+        </tr>
+        <tr class="">
+          <td><strong>ROKU</strong></td><td>Roku</td>
+          <td class="mono">US</td>
+          <td class="mono">$87.6800</td>
+          <td class="mono">-0.1200</td>
+          <td class="mono">+2.7867</td>
+          <td class="mono">-2.9067</td>
+          <td class="mono">-0.03315</td>
+          <td><span class="badge-no">NO</span> </td>
+        </tr>
+        <tr class="">
+          <td><strong>PYPL</strong></td><td>PayPal</td>
+          <td class="mono">US</td>
+          <td class="mono">$47.0200</td>
+          <td class="mono">-6.3470</td>
+          <td class="mono">-4.7738</td>
+          <td class="mono">-1.5732</td>
+          <td class="mono">-0.03346</td>
+          <td><span class="badge-no">NO</span> </td>
+        </tr>
+        <tr class="">
+          <td><strong>MMYT</strong></td><td>MakeMyTrip</td>
+          <td class="mono">US</td>
+          <td class="mono">$56.3200</td>
+          <td class="mono">-9.3345</td>
+          <td class="mono">-7.4485</td>
+          <td class="mono">-1.8860</td>
+          <td class="mono">-0.03349</td>
+          <td><span class="badge-no">NO</span> </td>
+        </tr>
+        <tr class="">
+          <td><strong>XYZ</strong></td><td>Block</td>
+          <td class="mono">US</td>
+          <td class="mono">$51.0000</td>
+          <td class="mono">-4.3367</td>
+          <td class="mono">-2.6258</td>
+          <td class="mono">-1.7110</td>
+          <td class="mono">-0.03355</td>
+          <td><span class="badge-no">NO</span> </td>
+        </tr>
+        <tr class="">
+          <td><strong>BKNG</strong></td><td>Booking Holdings</td>
+          <td class="mono">US</td>
+          <td class="mono">$4,068.5601</td>
+          <td class="mono">-245.8806</td>
+          <td class="mono">-108.3023</td>
+          <td class="mono">-137.5783</td>
+          <td class="mono">-0.03381</td>
+          <td><span class="badge-no">NO</span> </td>
+        </tr>
+        <tr class="">
+          <td><strong>WIX</strong></td><td>Wix</td>
+          <td class="mono">US</td>
+          <td class="mono">$65.4900</td>
+          <td class="mono">-20.1607</td>
+          <td class="mono">-17.8268</td>
+          <td class="mono">-2.3339</td>
+          <td class="mono">-0.03564</td>
+          <td><span class="badge-no">NO</span> </td>
+        </tr>
+        <tr class="">
+          <td><strong>PRX.AS</strong></td><td>Prosus</td>
+          <td class="mono">EU</td>
+          <td class="mono">$44.3300</td>
+          <td class="mono">-1.9192</td>
+          <td class="mono">-0.3249</td>
+          <td class="mono">-1.5943</td>
+          <td class="mono">-0.03596</td>
+          <td><span class="badge-no">NO</span> </td>
+        </tr>
+        <tr class="">
+          <td><strong>CARG</strong></td><td>CarGurus</td>
+          <td class="mono">US</td>
+          <td class="mono">$28.9800</td>
+          <td class="mono">-1.2310</td>
+          <td class="mono">-0.1805</td>
+          <td class="mono">-1.0506</td>
+          <td class="mono">-0.03625</td>
+          <td><span class="badge-no">NO</span> </td>
+        </tr>
+        <tr class="">
+          <td><strong>3659.T</strong></td><td>Nexon</td>
+          <td class="mono">JP</td>
+          <td class="mono">$3,092.0000</td>
+          <td class="mono">+81.7832</td>
+          <td class="mono">+203.6880</td>
+          <td class="mono">-121.9048</td>
+          <td class="mono">-0.03943</td>
+          <td><span class="badge-no">NO</span> </td>
+        </tr>
+        <tr class="">
+          <td><strong>CPNG</strong></td><td>Coupang</td>
+          <td class="mono">US</td>
+          <td class="mono">$18.5900</td>
+          <td class="mono">-2.7614</td>
+          <td class="mono">-2.0045</td>
+          <td class="mono">-0.7569</td>
+          <td class="mono">-0.04072</td>
+          <td><span class="badge-no">NO</span> </td>
+        </tr>
+        <tr class="">
+          <td><strong>DASH</strong></td><td>DoorDash</td>
+          <td class="mono">US</td>
+          <td class="mono">$164.3800</td>
+          <td class="mono">-14.8648</td>
+          <td class="mono">-8.0596</td>
+          <td class="mono">-6.8052</td>
+          <td class="mono">-0.04140</td>
+          <td><span class="badge-no">NO</span> </td>
+        </tr>
+        <tr class="">
+          <td><strong>TCOM</strong></td><td>Trip.com</td>
+          <td class="mono">US</td>
+          <td class="mono">$53.7700</td>
+          <td class="mono">-3.0852</td>
+          <td class="mono">-0.8070</td>
+          <td class="mono">-2.2781</td>
+          <td class="mono">-0.04237</td>
+          <td><span class="badge-no">NO</span> </td>
+        </tr>
+        <tr class="">
+          <td><strong>RBLX</strong></td><td>Roblox</td>
+          <td class="mono">US</td>
+          <td class="mono">$67.0900</td>
+          <td class="mono">-10.9464</td>
+          <td class="mono">-7.8790</td>
+          <td class="mono">-3.0673</td>
+          <td class="mono">-0.04572</td>
+          <td><span class="badge-no">NO</span> </td>
+        </tr>
+        <tr class="">
+          <td><strong>YELP</strong></td><td>Yelp</td>
+          <td class="mono">US</td>
+          <td class="mono">$19.7800</td>
+          <td class="mono">-2.7776</td>
+          <td class="mono">-1.8405</td>
+          <td class="mono">-0.9371</td>
+          <td class="mono">-0.04738</td>
+          <td><span class="badge-no">NO</span> </td>
+        </tr>
+        <tr class="">
+          <td><strong>ADYEN.AS</strong></td><td>Adyen</td>
+          <td class="mono">EU</td>
+          <td class="mono">$950.0000</td>
+          <td class="mono">-109.2263</td>
+          <td class="mono">-63.2612</td>
+          <td class="mono">-45.9652</td>
+          <td class="mono">-0.04838</td>
+          <td><span class="badge-no">NO</span> </td>
+        </tr>
+        <tr class="">
+          <td><strong>TRIP</strong></td><td>TripAdvisor</td>
+          <td class="mono">US</td>
+          <td class="mono">$10.0600</td>
+          <td class="mono">-1.2997</td>
+          <td class="mono">-0.8107</td>
+          <td class="mono">-0.4890</td>
+          <td class="mono">-0.04861</td>
+          <td><span class="badge-no">NO</span> </td>
+        </tr>
+        <tr class="">
+          <td><strong>ANGI</strong></td><td>Angi Inc</td>
+          <td class="mono">US</td>
+          <td class="mono">$8.0300</td>
+          <td class="mono">-1.5569</td>
+          <td class="mono">-1.1507</td>
+          <td class="mono">-0.4063</td>
+          <td class="mono">-0.05060</td>
+          <td><span class="badge-no">NO</span> </td>
+        </tr>
+        <tr class="">
+          <td><strong>PINS</strong></td><td>Pinterest</td>
+          <td class="mono">US</td>
+          <td class="mono">$16.9500</td>
+          <td class="mono">-3.7177</td>
+          <td class="mono">-2.7717</td>
+          <td class="mono">-0.9460</td>
+          <td class="mono">-0.05581</td>
+          <td><span class="badge-no">NO</span> </td>
+        </tr>
+        <tr class="">
+          <td><strong>SHOP</strong></td><td>Shopify</td>
+          <td class="mono">US</td>
+          <td class="mono">$116.9300</td>
+          <td class="mono">-4.4803</td>
+          <td class="mono">+2.1079</td>
+          <td class="mono">-6.5882</td>
+          <td class="mono">-0.05634</td>
+          <td><span class="badge-no">NO</span> </td>
+        </tr>
+        <tr class="">
+          <td><strong>EXPE</strong></td><td>Expedia</td>
+          <td class="mono">US</td>
+          <td class="mono">$198.1200</td>
+          <td class="mono">+2.6549</td>
+          <td class="mono">+14.3004</td>
+          <td class="mono">-11.6456</td>
+          <td class="mono">-0.05878</td>
+          <td><span class="badge-no">NO</span> </td>
+        </tr>
+        <tr class="">
+          <td><strong>SNAP</strong></td><td>Snap</td>
+          <td class="mono">US</td>
+          <td class="mono">$4.9700</td>
+          <td class="mono">-0.7745</td>
+          <td class="mono">-0.4808</td>
+          <td class="mono">-0.2936</td>
+          <td class="mono">-0.05907</td>
+          <td><span class="badge-no">NO</span> </td>
+        </tr>
+        <tr class="">
+          <td><strong>FVRR</strong></td><td>Fiverr</td>
+          <td class="mono">US</td>
+          <td class="mono">$11.0600</td>
+          <td class="mono">-3.0356</td>
+          <td class="mono">-2.3582</td>
+          <td class="mono">-0.6774</td>
+          <td class="mono">-0.06125</td>
+          <td><span class="badge-no">NO</span> </td>
+        </tr>
+        <tr class="">
+          <td><strong>TDOC</strong></td><td>Teladoc</td>
+          <td class="mono">US</td>
+          <td class="mono">$4.5400</td>
+          <td class="mono">-0.8338</td>
+          <td class="mono">-0.5524</td>
+          <td class="mono">-0.2814</td>
+          <td class="mono">-0.06198</td>
+          <td><span class="badge-no">NO</span> </td>
+        </tr>
+        <tr class="">
+          <td><strong>ZG</strong></td><td>Zillow</td>
+          <td class="mono">US</td>
+          <td class="mono">$43.8400</td>
+          <td class="mono">-6.5325</td>
+          <td class="mono">-3.6231</td>
+          <td class="mono">-2.9094</td>
+          <td class="mono">-0.06636</td>
+          <td><span class="badge-no">NO</span> </td>
+        </tr>
+        <tr class="">
+          <td><strong>COIN</strong></td><td>Coinbase</td>
+          <td class="mono">US</td>
+          <td class="mono">$162.0300</td>
+          <td class="mono">-35.1592</td>
+          <td class="mono">-24.4012</td>
+          <td class="mono">-10.7580</td>
+          <td class="mono">-0.06639</td>
+          <td><span class="badge-no">NO</span> </td>
+        </tr>
+        <tr class="">
+          <td><strong>W</strong></td><td>Wayfair</td>
+          <td class="mono">US</td>
+          <td class="mono">$73.9100</td>
+          <td class="mono">+2.7413</td>
+          <td class="mono">+7.9221</td>
+          <td class="mono">-5.1809</td>
+          <td class="mono">-0.07010</td>
+          <td><span class="badge-no">NO</span> </td>
+        </tr>
+        <tr class="">
+          <td><strong>LYFT</strong></td><td>Lyft</td>
+          <td class="mono">US</td>
+          <td class="mono">$13.5300</td>
+          <td class="mono">-0.9035</td>
+          <td class="mono">+0.0647</td>
+          <td class="mono">-0.9682</td>
+          <td class="mono">-0.07156</td>
+          <td><span class="badge-no">NO</span> </td>
+        </tr>
+        <tr class="">
+          <td><strong>SOFI</strong></td><td>SoFi Technologies</td>
+          <td class="mono">US</td>
+          <td class="mono">$18.6600</td>
+          <td class="mono">-0.7866</td>
+          <td class="mono">+0.6121</td>
+          <td class="mono">-1.3987</td>
+          <td class="mono">-0.07496</td>
+          <td><span class="badge-no">NO</span> </td>
+        </tr>
+        <tr class="">
+          <td><strong>UPWK</strong></td><td>Upwork</td>
+          <td class="mono">US</td>
+          <td class="mono">$13.0200</td>
+          <td class="mono">-0.2406</td>
+          <td class="mono">+0.7380</td>
+          <td class="mono">-0.9786</td>
+          <td class="mono">-0.07516</td>
+          <td><span class="badge-no">NO</span> </td>
+        </tr>
+        <tr class="">
+          <td><strong>JMIA</strong></td><td>Jumia Technologies</td>
+          <td class="mono">US</td>
+          <td class="mono">$8.4500</td>
+          <td class="mono">+0.5200</td>
+          <td class="mono">+1.2220</td>
+          <td class="mono">-0.7020</td>
+          <td class="mono">-0.08308</td>
+          <td><span class="badge-no">NO</span> </td>
+        </tr>
+        <tr class="">
+          <td><strong>RDDT</strong></td><td>Reddit</td>
+          <td class="mono">US</td>
+          <td class="mono">$142.0800</td>
+          <td class="mono">-9.6437</td>
+          <td class="mono">+2.6217</td>
+          <td class="mono">-12.2655</td>
+          <td class="mono">-0.08633</td>
+          <td><span class="badge-no">NO</span> </td>
+        </tr>
+        <tr class="">
+          <td><strong>HOOD</strong></td><td>Robinhood</td>
+          <td class="mono">US</td>
+          <td class="mono">$73.3900</td>
+          <td class="mono">-6.7353</td>
+          <td class="mono">+0.5517</td>
+          <td class="mono">-7.2870</td>
+          <td class="mono">-0.09929</td>
+          <td><span class="badge-no">NO</span> </td>
+        </tr>
+        <tr class="">
+          <td><strong>U</strong></td><td>Unity Software</td>
+          <td class="mono">US</td>
+          <td class="mono">$18.2900</td>
+          <td class="mono">-3.4261</td>
+          <td class="mono">+0.0718</td>
+          <td class="mono">-3.4979</td>
+          <td class="mono">-0.19125</td>
+          <td><span class="badge-no">NO</span> </td>
+        </tr></tbody></table></div>
+</div>
+
+<div class="section">
+  <div class="sec-hdr"><h2>Trade Log</h2><span class="tag">most recent first</span></div>
+  <div class="tbl-wrap"><table>
+    <thead><tr><th>Date</th><th>Ticker</th><th>Name</th><th>Action</th>
+      <th>Price</th><th>P&L %</th><th>Reason</th></tr></thead>
+    <tbody><tr><td colspan="7" style="color:var(--muted);padding:20px;font-family:IBM Plex Mono,monospace">No trades yet.</td></tr></tbody></table></div>
+</div>
+
+<footer>
+  Internet Momentum Portfolio · MACD&gt;0 AND Hist&gt;0 (EMA 12/26/9, Weekly) ·
+  Ranked Hist/Close · Max 20 positions · Min 10 to stay invested ·
+  Hold until signal off · $100k NAV · Not financial advice.
+</footer></div>
+
+<script>
+const D={"dates": ["2026-02-25"], "values": [100000.0], "returns": [0.0], "holdings": [0]};
+const ctx=document.getElementById('navChart').getContext('2d');
+const g=ctx.createLinearGradient(0,0,0,280);
+g.addColorStop(0,'rgba(74,222,128,.22)');g.addColorStop(1,'rgba(74,222,128,0)');
+new Chart(ctx,{type:'line',
+  data:{labels:D.dates,datasets:[{label:'NAV',data:D.values,
+    borderColor:'#4ade80',backgroundColor:g,borderWidth:2,
+    pointRadius:D.dates.length>26?0:4,pointHoverRadius:6,
+    pointBackgroundColor:'#4ade80',tension:.35,fill:true}]},
+  options:{responsive:true,interaction:{mode:'index',intersect:false},
+    plugins:{legend:{display:false},tooltip:{
+      backgroundColor:'#0f1018',borderColor:'#23242f',borderWidth:1,
+      titleColor:'#4ade80',bodyColor:'#dde1ed',
+      callbacks:{
+        label:c=>' NAV: $'+c.parsed.y.toLocaleString(undefined,{maximumFractionDigits:0}),
+        afterLabel:c=>{
+          const r=D.returns[c.dataIndex],h=D.holdings[c.dataIndex];
+          return[' Week: '+(r>=0?'+':'')+r.toFixed(2)+'%',' Holdings: '+h];
+        }
+      }
+    }},
+    scales:{
+      x:{grid:{color:'#23242f'},ticks:{color:'#5a6070',font:{family:'IBM Plex Mono',size:11},maxTicksLimit:14}},
+      y:{grid:{color:'#23242f'},ticks:{color:'#5a6070',font:{family:'IBM Plex Mono',size:11},
+           callback:v=>'$'+v.toLocaleString()}}
+    }
+  }
+});
+</script></body></html>
