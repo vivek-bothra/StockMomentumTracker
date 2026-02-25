@@ -1,335 +1,726 @@
-import os
+"""
+Internet Momentum Portfolio Tracker — fetch_stock_data.py
+=========================================================
+
+Portfolio rules:
+  Signal:      MACD > 0  AND  Hist > 0
+  Max pos:     20
+  Entry rank:  Hist / Weekly Close (normalised — fair across all price scales & currencies)
+  Hold rule:   NEVER sell a position unless its signal turns OFF
+  New entries: Only when capacity exists (held < 20). Fill slots by rank score desc.
+  Sizing:      New entry cost = current NAV ÷ total holdings AFTER this week's buys
+  Min stocks:  < 10 qualifying → exit ALL, go 100% cash
+  Cash re-entry: ≥ 10 qualify → take all qualifying up to 20, ranked
+  NAV:         $100,000 starting capital, tracks week-over-week
+  Scans:       docs/scans/YYYY-MM-DD.csv — immutable weekly snapshots
+  No Google Sheets dependency.
+"""
+
 import json
 import logging
 import time
+from datetime import date
+from pathlib import Path
 
 import pandas as pd
 import yfinance as yf
-from google.oauth2.service_account import Credentials
-from googleapiclient.discovery import build
-from googleapiclient.errors import HttpError
-DEBUG_YFINANCE = os.getenv("YF_DEBUG", "0").lower() in {"1", "true", "yes"}
-if DEBUG_YFINANCE:
-    yf.enable_debug_mode()
 
-# Set up logging
-logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s')
-
-# Google Sheets setup
-SHEET_ID = '1wiVMF-bOePDKeaKpQx46FsjZ9pMn1C0RqpnxjNiajmw'
-SCOPES = ['https://www.googleapis.com/auth/spreadsheets']
-
-service = None
-try:
-    if os.path.exists('credentials.json'):
-        creds = Credentials.from_service_account_file('credentials.json', scopes=SCOPES)
-    elif os.getenv('GOOGLE_CREDENTIALS'):
-        creds = Credentials.from_service_account_info(
-            json.loads(os.getenv('GOOGLE_CREDENTIALS')), scopes=SCOPES
-        )
-    else:
-        raise FileNotFoundError("Google credentials not provided")
-    service = build('sheets', 'v4', credentials=creds)
-except Exception as e:
-    logging.warning(f"Google Sheets API disabled: {str(e)}")
-
-# HTTP session configuration
-
-
-def create_http_session():
-    """Create an HTTP session for yfinance with an optional curl_cffi backend."""
-
-    use_curl_cffi = os.getenv("USE_CURL_CFFI", "1").lower() not in {"0", "false", "no"}
-
-    if use_curl_cffi:
-        try:
-            from curl_cffi import requests as curl_requests  # type: ignore
-
-            session = curl_requests.Session(impersonate="chrome")
-            logging.info("Using curl_cffi session for Yahoo Finance requests.")
-            return session
-        except Exception as exc:  # pragma: no cover - defensive fallback
-            logging.warning(
-                "curl_cffi session unavailable (%s); falling back to requests.",
-                exc,
-            )
-
-    import requests
-
-    session = requests.Session()
-    session.headers.update(
-        {
-            "User-Agent": (
-                "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 "
-                "(KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36"
-            ),
-            "Accept": "text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8",
-            "Accept-Language": "en-US,en;q=0.9",
-            "Connection": "keep-alive",
-        }
-    )
-    logging.info("Using requests session for Yahoo Finance requests.")
-    return session
-
-
-session = create_http_session()
-
-
-def can_reach_yahoo_finance(session):
-    """Check whether Yahoo Finance is reachable from the current runtime."""
-
-    try:
-        response = session.get("https://query2.finance.yahoo.com/v1/test/getcrumb", timeout=10)
-        response.raise_for_status()
-        return True, ""
-    except Exception as exc:
-        return False, str(exc)
-
-# Ticker list (single ticker for testing)
-tickers = [
-    "GOOGL", "META", "AMZN", "BABA", "0700.HK", "NFLX", "BIDU", "JD", "EBAY", "MELI",
-    "SE", "4755.T", "ZAL.DE", "CPNG", "3690.HK", "PDD", "W", "SNAP", "PINS", "RDDT",
-    "1024.HK", "035420.KS", "SPOT", "TME", "BILI", "ROKU", "HUYA", "IQ", "BKNG", "EXPE",
-    "TCOM", "ABNB", "MMYT", "TRVG", "DESP", "PYPL", "XYZ", "ADYEN.AS", "NU", "COIN",
-    "HOOD", "SOFI", "ETERNAL.NS", "DASH", "DHER.DE", "TKWY.AS", "UBER", "LYFT", "GRAB",
-    "PRX.AS", "ZG", "REA.AX", "RMV.L", "CARG", "AUTO.L", "3659.T", "036570.KS", "TTWO",
-    "EA", "RBLX", "U", "259960.KS", "DBX", "ZM", "TWLO", "SHOP", "GDDY", "WIX", "NET",
-    "AKAM", "UPWK", "FVRR", "TDOC", "MTCH", "BMBL", "ANGI", "SSTK", "TTD", "VMEO",
-    "4385.T", "JMIA", "ALE.WA", "ASC.L", "BOO.L", "CHWY", "ETSY", "HFG.DE", "JUSTDIAL.NS",
-    "NAUKRI.NS", "069080.KS", "NTES", "NVDA", "035720.KS", "GRPN", "YELP", "TRIP",
-    "SWIGGY.NS", "NYKAA.NS", "PAYTM.NS", "POLICYBZR.NS"
-]
-
-# Function to calculate EMA
-def calculate_ema(data, period):
-    return data.ewm(span=period, adjust=False).mean()
-
-def fetch_stock_history(ticker, session, max_attempts=3):
-    """Fetch ticker history with bounded retries."""
-
-    retryable_markers = [
-        "Read timed out",
-        "Too Many Requests",
-        "Rate limited",
-        "temporarily unavailable",
-        "Connection reset",
-    ]
-
-    for attempt in range(1, max_attempts + 1):
-        try:
-            stock = yf.Ticker(ticker, session=session)
-            return stock.history(period="2y", auto_adjust=True)
-        except Exception as exc:
-            err_text = str(exc)
-            is_retryable = any(marker.lower() in err_text.lower() for marker in retryable_markers)
-            if not is_retryable or attempt == max_attempts:
-                raise
-            wait_seconds = min(2 ** attempt, 10)
-            logging.warning(
-                "Retryable fetch error for %s (attempt %s/%s): %s. Retrying in %ss.",
-                ticker,
-                attempt,
-                max_attempts,
-                err_text,
-                wait_seconds,
-            )
-            time.sleep(wait_seconds)
-
-# Fetch and calculate MACD for a ticker
-def get_stock_data(ticker, session):
-    try:
-        logging.info(f"Fetching data for {ticker}")
-        # Fetch history directly without info check
-        df = fetch_stock_history(ticker, session)
-        if df.empty:
-            logging.warning(f"No data for {ticker}")
-            return [ticker, "No Data", 0, 0, 0, 0, 0]
-        
-        # Resample to weekly (Friday close)
-        weekly = df['Close'].resample('W-FRI').last().dropna()
-        if len(weekly) < 26:  # Need at least 26 weeks for EMA26
-            logging.warning(f"Insufficient data for {ticker}: {len(weekly)} weeks")
-            return [ticker, round(weekly.iloc[-1], 2) if not weekly.empty else "No Data", 0, 0, 0, 0, 0]
-        
-        # Calculate MACD
-        ema12 = calculate_ema(weekly, 12)
-        ema26 = calculate_ema(weekly, 26)
-        macd = ema12 - ema26
-        signal = calculate_ema(macd, 9)
-        hist = macd - signal
-        
-        return [
-            ticker,
-            round(weekly.iloc[-1], 2),
-            round(ema12.iloc[-1], 2),
-            round(ema26.iloc[-1], 2),
-            round(macd.iloc[-1], 2),
-            round(signal.iloc[-1], 2),
-            round(hist.iloc[-1], 2)
-        ]
-    except Exception as e:
-        logging.error(f"Error for {ticker}: {str(e)}")
-        return [ticker, f"Error: {str(e)}", 0, 0, 0, 0, 0]
-    finally:
-        time.sleep(2)  # Modest delay to avoid rate limiting
-
-# Fetch data for all tickers
-results = []
-reachable, connectivity_error = can_reach_yahoo_finance(session)
-
-if not reachable:
-    logging.error(
-        "Yahoo Finance is unreachable from this environment. "
-        "Skipping ticker fetches to avoid a long failing run. Error: %s",
-        connectivity_error,
-    )
-    results = [[ticker, f"Fetch Error: {connectivity_error}", 0, 0, 0, 0, 0] for ticker in tickers]
-else:
-    for ticker in tickers:
-        result = get_stock_data(ticker, session)
-        results.append(result)
-        logging.info(f"Processed {ticker}: {result[1]}")
-
-# Add timestamp column
-timestamp = pd.Timestamp.now().strftime("%Y-%m-%d %H:%M:%S")
-results = [[r[0], r[1], r[2], r[3], r[4], r[5], r[6], timestamp] for r in results]
-
-# Prepare data for Google Sheets
-header = ["Ticker", "Weekly Close", "EMA12", "EMA26", "MACD", "Signal", "Hist", "Last Updated"]
-body = [header] + results
-
-# ----- Docs and trade log generation -----
-df = pd.DataFrame(results, columns=header)
-df["Momentum"] = (df["MACD"] > df["Signal"]).map({True: "Yes", False: "No"})
-
-docs_dir = "docs"
-os.makedirs(docs_dir, exist_ok=True)
-
-# Append to history
-history_path = os.path.join(docs_dir, "history.csv")
-if os.path.exists(history_path):
-    df.to_csv(history_path, mode="a", header=False, index=False)
-else:
-    df.to_csv(history_path, index=False)
-
-# Build trade log based on momentum changes
-last_state_path = os.path.join(docs_dir, "last_momentum.json")
-if os.path.exists(last_state_path):
-    with open(last_state_path, "r") as f:
-        last_state = json.load(f)
-else:
-    last_state = {}
-
-# Track open positions to compute profits on SELL
-positions_path = os.path.join(docs_dir, "positions.json")
-if os.path.exists(positions_path):
-    with open(positions_path, "r") as f:
-        positions = json.load(f)
-else:
-    positions = {}
-
-trades = []
-for _, row in df.iterrows():
-    ticker = row["Ticker"]
-    momentum = row["Momentum"]
-    price = row["Weekly Close"]
-    prev = last_state.get(ticker)
-
-    try:
-        numeric_price = float(price)
-    except (TypeError, ValueError):
-        # Keep momentum state in sync even when data fetch failed.
-        last_state[ticker] = momentum
-        continue
-
-    if momentum == "Yes" and prev != "Yes":
-        trades.append([ticker, "BUY", numeric_price, timestamp, ""])
-        positions[ticker] = numeric_price
-    elif momentum == "No" and prev == "Yes":
-        buy_price = positions.pop(ticker, numeric_price)
-        profit = round(numeric_price - float(buy_price), 2)
-        trades.append([ticker, "SELL", numeric_price, timestamp, profit])
-    last_state[ticker] = momentum
-
-trade_log_path = os.path.join(docs_dir, "trade_log.csv")
-if trades:
-    trade_df = pd.DataFrame(trades, columns=["Ticker", "Action", "Price", "Timestamp", "Profit"])
-    if os.path.exists(trade_log_path):
-        trade_df.to_csv(trade_log_path, mode="a", header=False, index=False)
-    else:
-        trade_df.to_csv(trade_log_path, index=False)
-
-with open(last_state_path, "w") as f:
-    json.dump(last_state, f)
-with open(positions_path, "w") as f:
-    json.dump(positions, f)
-
-# Generate simple HTML page
-trade_log_df = (
-    pd.read_csv(trade_log_path)
-    if os.path.exists(trade_log_path)
-    else pd.DataFrame(columns=["Ticker", "Action", "Price", "Timestamp", "Profit"])
+# ── Logging ───────────────────────────────────────────────────────────────────
+logging.basicConfig(
+    level=logging.INFO,
+    format="%(asctime)s  %(levelname)-8s  %(message)s",
+    datefmt="%Y-%m-%d %H:%M:%S",
 )
-if "Profit" not in trade_log_df.columns:
-    trade_log_df["Profit"] = ""
+log = logging.getLogger(__name__)
 
-# Build responsive HTML using Bootstrap
-html_content = f"""
-<html>
-<head>
-    <meta charset="utf-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1">
-    <title>Stock Momentum Tracker</title>
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
-</head>
-<body class="container my-4">
-    <h1 class="mb-4">Latest Momentum</h1>
-    <div class="table-responsive">
-        {df.to_html(index=False, classes='table table-striped')}
-    </div>
-    <h1 class="mt-5">Trade Log</h1>
-    <div class="table-responsive">
-        {trade_log_df.to_html(index=False, classes='table table-striped')}
-    </div>
-</body>
-</html>
-"""
-with open(os.path.join(docs_dir, "index.html"), "w", encoding="utf-8") as f:
-    f.write(html_content)
-# ----- End docs section -----
+# ── Paths ─────────────────────────────────────────────────────────────────────
+ROOT            = Path(__file__).parent
+DOCS            = ROOT / "docs"
+SCANS           = DOCS / "scans"
+PORTFOLIO_STATE = DOCS / "portfolio_state.json"
+NAV_HISTORY     = DOCS / "nav_history.csv"
+TRADE_LOG       = DOCS / "trade_log.csv"
+TICKERS_FILE    = ROOT / "tickers.csv"
 
-# Update Google Sheet with retry logic
-if service:
-    sheet = service.spreadsheets()
-    clear_range = "Sheet1!A1:H1000"  # Clear a large range
-    range_name = f"Sheet1!A1:H{len(results) + 1}"
-    max_attempts = 5
+for d in (DOCS, SCANS):
+    d.mkdir(parents=True, exist_ok=True)
 
-    for attempt in range(1, max_attempts + 1):
+# ── Strategy constants ────────────────────────────────────────────────────────
+STARTING_NAV  = 100_000.0
+MAX_POSITIONS = 20
+MIN_STOCKS    = 10
+EMA_FAST, EMA_SLOW, EMA_SIG = 12, 26, 9
+
+# ── HTTP session ──────────────────────────────────────────────────────────────
+def _make_session():
+    try:
+        from curl_cffi import requests as cc
+        s = cc.Session(impersonate="chrome")
+        log.info("HTTP: curl_cffi")
+        return s
+    except Exception:
+        pass
+    import requests
+    s = requests.Session()
+    s.headers["User-Agent"] = (
+        "Mozilla/5.0 (Windows NT 10.0; Win64; x64) "
+        "AppleWebKit/537.36 (KHTML, like Gecko) "
+        "Chrome/124.0.0.0 Safari/537.36"
+    )
+    log.info("HTTP: requests")
+    return s
+
+SESSION = _make_session()
+
+# ── Connectivity ──────────────────────────────────────────────────────────────
+def yahoo_reachable() -> bool:
+    try:
+        r = SESSION.get(
+            "https://query2.finance.yahoo.com/v1/test/getcrumb", timeout=10
+        )
+        r.raise_for_status()
+        return True
+    except Exception as e:
+        log.error("Yahoo Finance unreachable: %s", e)
+        return False
+
+# ── Ticker universe ───────────────────────────────────────────────────────────
+def load_tickers() -> pd.DataFrame:
+    if not TICKERS_FILE.exists():
+        raise FileNotFoundError(f"tickers.csv not found at {TICKERS_FILE}")
+    df = pd.read_csv(TICKERS_FILE)
+    df.columns = [c.strip().lower() for c in df.columns]
+    log.info("Loaded %d tickers from tickers.csv", len(df))
+    return df
+
+# ── MACD ──────────────────────────────────────────────────────────────────────
+def calc_macd(series: pd.Series):
+    ema_f  = series.ewm(span=EMA_FAST, adjust=False).mean()
+    ema_s  = series.ewm(span=EMA_SLOW, adjust=False).mean()
+    macd   = ema_f - ema_s
+    signal = macd.ewm(span=EMA_SIG, adjust=False).mean()
+    hist   = macd - signal
+    return ema_f, ema_s, macd, signal, hist
+
+# ── Fetch one ticker ──────────────────────────────────────────────────────────
+RETRYABLE = ["Read timed out", "Too Many Requests", "Rate limited",
+             "temporarily unavailable", "Connection reset"]
+
+def fetch_ticker(ticker: str, attempts: int = 3) -> pd.DataFrame:
+    for i in range(1, attempts + 1):
         try:
-            logging.info(f"Clearing Google Sheet at range {clear_range}")
-            sheet.values().clear(spreadsheetId=SHEET_ID, range=clear_range).execute()
-            logging.info(f"Attempting to update Google Sheet at range {range_name}")
-            request = sheet.values().update(
-                spreadsheetId=SHEET_ID,
-                range=range_name,
-                valueInputOption="RAW",
-                body={"values": body}
-            ).execute()
-            logging.info(
-                f"Successfully updated Google Sheet with {len(results)} tickers: {request.get('updatedCells')} cells updated"
+            return yf.Ticker(ticker, session=SESSION).history(
+                period="2y", auto_adjust=True
             )
-            break
-        except (TimeoutError, HttpError) as e:
-            logging.warning(f"Attempt {attempt} failed: {str(e)}")
-            if attempt == max_attempts:
-                logging.error("Exceeded maximum attempts to update Google Sheet")
-                raise
-            time.sleep(2 ** attempt)
         except Exception as e:
-            logging.error(f"Unexpected error updating Google Sheet: {str(e)}")
-            raise
+            msg = str(e)
+            if any(m.lower() in msg.lower() for m in RETRYABLE) and i < attempts:
+                wait = min(2 ** i, 10)
+                log.warning("Retry %s/%s for %s in %ss", i, attempts, ticker, wait)
+                time.sleep(wait)
+            else:
+                raise
 
-    print(f"Updated Google Sheet with {len(results)} tickers.")
-else:
-    logging.info("Google Sheets service not initialized; skipping Sheet update.")
+def get_stock_data(ticker: str, name: str, region: str) -> dict:
+    base = {"ticker": ticker, "name": name, "region": region, "momentum": False}
+    try:
+        log.info("Fetching %-20s  (%s)", ticker, region)
+        df = fetch_ticker(ticker)
+
+        if df is None or df.empty:
+            return {**base, "status": "no_data"}
+
+        weekly = df["Close"].resample("W-FRI").last().dropna()
+
+        if len(weekly) < EMA_SLOW + EMA_SIG:
+            log.warning("Insufficient history for %s (%d weeks)", ticker, len(weekly))
+            return {
+                **base,
+                "weekly_close": round(float(weekly.iloc[-1]), 4) if len(weekly) else None,
+                "status": "insufficient_history",
+            }
+
+        ema_f, ema_s, macd, signal, hist = calc_macd(weekly)
+
+        close  = round(float(weekly.iloc[-1]),   4)
+        e12    = round(float(ema_f.iloc[-1]),    4)
+        e26    = round(float(ema_s.iloc[-1]),    4)
+        macd_v = round(float(macd.iloc[-1]),     4)
+        sig_v  = round(float(signal.iloc[-1]),   4)
+        hist_v = round(float(hist.iloc[-1]),     4)
+
+        # Signal: MACD > 0 AND Hist > 0
+        momentum = bool((macd_v > 0) and (hist_v > 0))
+
+        # Ranking score: Hist / Close  (normalised — comparable across all prices & currencies)
+        rank_score = round(hist_v / close, 6) if close and close != 0 else 0.0
+
+        return {
+            **base,
+            "weekly_close": close,
+            "ema12": e12, "ema26": e26,
+            "macd": macd_v, "signal": sig_v, "hist": hist_v,
+            "rank_score": rank_score,
+            "momentum": momentum,
+            "status": "ok",
+        }
+
+    except Exception as e:
+        log.error("Error fetching %s: %s", ticker, e)
+        return {**base, "status": f"error: {e}"}
+    finally:
+        time.sleep(1.5)
+
+# ── State ─────────────────────────────────────────────────────────────────────
+def load_state() -> dict:
+    if PORTFOLIO_STATE.exists():
+        return json.loads(PORTFOLIO_STATE.read_text())
+    return {
+        "holdings": {},
+        # holdings schema: {ticker: {entry_price, entry_date, name, region,
+        #                            cost_basis, rank_score_at_entry}}
+        "cash": STARTING_NAV,
+        "nav": STARTING_NAV,
+        "inception_date": str(date.today()),
+        "last_run": None,
+        "in_cash": False,
+    }
+
+def save_state(s: dict):
+    PORTFOLIO_STATE.write_text(json.dumps(s, indent=2, default=str))
+
+# ── NAV ───────────────────────────────────────────────────────────────────────
+def mark_to_market(state: dict, scan_by_t: dict) -> float:
+    """cash + Σ (current_price / entry_price) × cost_basis for each holding."""
+    nav = state["cash"]
+    for t, pos in state["holdings"].items():
+        px = (scan_by_t[t]["weekly_close"]
+              if t in scan_by_t and scan_by_t[t].get("weekly_close")
+              else pos["entry_price"])
+        nav += (px / pos["entry_price"]) * pos["cost_basis"]
+    return nav
+
+def load_nav_history() -> pd.DataFrame:
+    if NAV_HISTORY.exists():
+        return pd.read_csv(NAV_HISTORY)
+    return pd.DataFrame(columns=[
+        "date", "nav", "weekly_return_pct",
+        "num_holdings", "in_cash", "qualifying_count"
+    ])
+
+def append_nav(nav_df, run_date, nav, n_held, in_cash, q_count) -> pd.DataFrame:
+    prev = float(nav_df["nav"].iloc[-1]) if len(nav_df) else STARTING_NAV
+    wret = round((nav / prev - 1) * 100, 4) if prev else 0.0
+    row  = pd.DataFrame([{
+        "date": str(run_date), "nav": round(nav, 2),
+        "weekly_return_pct": wret, "num_holdings": n_held,
+        "in_cash": in_cash, "qualifying_count": q_count,
+    }])
+    return pd.concat([nav_df, row], ignore_index=True)
+
+# ── Trade log ─────────────────────────────────────────────────────────────────
+def load_trade_log() -> pd.DataFrame:
+    if TRADE_LOG.exists():
+        return pd.read_csv(TRADE_LOG)
+    return pd.DataFrame(columns=[
+        "date", "ticker", "name", "action",
+        "price", "cost_basis", "realized_pnl_pct", "reason"
+    ])
+
+def record_trade(tdf, run_date, ticker, name, action,
+                 price, cost_basis=None, pnl_pct=None, reason="") -> pd.DataFrame:
+    row = pd.DataFrame([{
+        "date": str(run_date), "ticker": ticker, "name": name, "action": action,
+        "price": round(price, 4),
+        "cost_basis": round(cost_basis, 4) if cost_basis is not None else "",
+        "realized_pnl_pct": round(pnl_pct, 2) if pnl_pct is not None else "",
+        "reason": reason,
+    }])
+    return pd.concat([tdf, row], ignore_index=True)
+
+# ── Portfolio engine ──────────────────────────────────────────────────────────
+def run_portfolio(state: dict, scan_results: list,
+                  scan_by_t: dict, run_date: date,
+                  trade_df: pd.DataFrame):
+    """
+    Returns (updated_trade_df, qualifying_count).
+    Mutates state in-place.
+
+    Flow:
+      1. Mark NAV to market.
+      2. Sell holdings whose signal is OFF.
+      3. Check < MIN_STOCKS gate → full cash if triggered.
+      4. Fill spare capacity (up to MAX_POSITIONS) from ranked candidates.
+         Entry size = NAV ÷ (current holdings + new buys).
+    """
+    holdings = state["holdings"]
+
+    # ── 1. Mark to market ─────────────────────────────────────────────────
+    state["nav"] = mark_to_market(state, scan_by_t)
+    log.info("NAV (mark-to-market): $%.2f", state["nav"])
+
+    # Build qualifying lookup
+    qualifying = {
+        r["ticker"]: r for r in scan_results
+        if r.get("momentum")
+        and r.get("status") == "ok"
+        and r.get("weekly_close") is not None
+    }
+    q_count = len(qualifying)
+
+    # ── 2. Exit positions where signal turned OFF ──────────────────────────
+    to_sell = [t for t in list(holdings) if t not in qualifying]
+    for t in to_sell:
+        pos       = holdings.pop(t)
+        sell_px   = (scan_by_t[t]["weekly_close"]
+                     if t in scan_by_t and scan_by_t[t].get("weekly_close")
+                     else pos["entry_price"])
+        pnl_pct   = (sell_px / pos["entry_price"] - 1) * 100
+        recovered = (sell_px / pos["entry_price"]) * pos["cost_basis"]
+        state["cash"] += recovered
+        trade_df = record_trade(
+            trade_df, run_date, t, pos.get("name", t),
+            "SELL", sell_px, pos["entry_price"], pnl_pct, "signal_off"
+        )
+        log.info("SELL  %-12s  @ %.4f  P&L %+.2f%%  recovered $%.2f",
+                 t, sell_px, pnl_pct, recovered)
+
+    # Re-mark after sells
+    state["nav"] = mark_to_market(state, scan_by_t)
+
+    # ── 3. < MIN_STOCKS gate ──────────────────────────────────────────────
+    if q_count < MIN_STOCKS:
+        log.warning("Only %d qualifying (< %d). Exiting all → cash.", q_count, MIN_STOCKS)
+        for t in list(holdings):
+            pos     = holdings.pop(t)
+            sell_px = (scan_by_t[t]["weekly_close"]
+                       if t in scan_by_t and scan_by_t[t].get("weekly_close")
+                       else pos["entry_price"])
+            pnl_pct = (sell_px / pos["entry_price"] - 1) * 100
+            state["cash"] += (sell_px / pos["entry_price"]) * pos["cost_basis"]
+            trade_df = record_trade(
+                trade_df, run_date, t, pos.get("name", t),
+                "SELL", sell_px, pos["entry_price"], pnl_pct, "cash_rule_lt10"
+            )
+            log.info("SELL  %-12s  @ %.4f  (cash rule)", t, sell_px)
+
+        state["nav"]      = state["cash"]
+        state["in_cash"]  = True
+        state["holdings"] = holdings
+        return trade_df, q_count
+
+    state["in_cash"] = False
+
+    # ── 4. Fill spare capacity ─────────────────────────────────────────────
+    capacity = MAX_POSITIONS - len(holdings)
+    if capacity <= 0:
+        log.info("Portfolio full (%d/%d). No new entries this week.",
+                 len(holdings), MAX_POSITIONS)
+        state["holdings"] = holdings
+        return trade_df, q_count
+
+    # Candidates = qualifying but NOT already held
+    candidates = [
+        r for r in qualifying.values()
+        if r["ticker"] not in holdings
+    ]
+    # Rank by Hist/Close descending
+    candidates.sort(key=lambda r: r.get("rank_score", 0), reverse=True)
+
+    slots = min(capacity, len(candidates))
+    if slots == 0:
+        log.info("No new candidates available.")
+        state["holdings"] = holdings
+        return trade_df, q_count
+
+    # Entry size: NAV ÷ total holdings after all buys complete
+    # (makes the whole portfolio equal-weight at this moment)
+    total_after = len(holdings) + slots
+    entry_size  = state["nav"] / total_after
+    log.info("Buying %d position(s). Entry size: $%.2f (NAV $%.2f ÷ %d)",
+             slots, entry_size, state["nav"], total_after)
+
+    for idx, r in enumerate(candidates[:slots]):
+        t          = r["ticker"]
+        entry_px   = r["weekly_close"]
+        cost_basis = round(entry_size, 4)
+
+        holdings[t] = {
+            "entry_price":         entry_px,
+            "entry_date":          str(run_date),
+            "name":                r.get("name", t),
+            "region":              r.get("region", ""),
+            "cost_basis":          cost_basis,
+            "rank_score_at_entry": r.get("rank_score", 0),
+        }
+        state["cash"] -= cost_basis
+
+        trade_df = record_trade(
+            trade_df, run_date, t, r.get("name", t),
+            "BUY", entry_px, None, None,
+            f"rank_{idx+1}_of_{len(candidates)}"
+        )
+        log.info("BUY   %-12s  @ %.4f  score=%.6f  cost=$%.2f",
+                 t, entry_px, r.get("rank_score", 0), cost_basis)
+
+    state["holdings"] = holdings
+    state["nav"]      = mark_to_market(state, scan_by_t)
+    return trade_df, q_count
+
+# ── Save immutable scan snapshot ──────────────────────────────────────────────
+def save_scan(results: list, run_date: date):
+    rows = [{
+        "ticker":       r.get("ticker"),
+        "name":         r.get("name", ""),
+        "region":       r.get("region", ""),
+        "weekly_close": r.get("weekly_close", ""),
+        "ema12":        r.get("ema12", ""),
+        "ema26":        r.get("ema26", ""),
+        "macd":         r.get("macd", ""),
+        "signal":       r.get("signal", ""),
+        "hist":         r.get("hist", ""),
+        "rank_score":   r.get("rank_score", ""),
+        "momentum":     "Yes" if r.get("momentum") else "No",
+        "status":       r.get("status", ""),
+    } for r in results]
+    path = SCANS / f"{run_date}.csv"
+    pd.DataFrame(rows).to_csv(path, index=False)
+    log.info("Scan saved → %s", path)
+
+# ── Dashboard HTML ────────────────────────────────────────────────────────────
+def build_html(state, scan_results, nav_df, trade_log_df,
+               run_date, warnings, q_count):
+
+    holdings = state["holdings"]
+    scan_by_t = {r["ticker"]: r for r in scan_results}
+    nav          = state["nav"]
+    total_return = (nav / STARTING_NAV - 1) * 100
+    inception    = state.get("inception_date", "—")
+    in_cash      = state.get("in_cash", False)
+    latest_wret  = (f'{float(nav_df["weekly_return_pct"].iloc[-1]):+.2f}%'
+                    if len(nav_df) else "—")
+
+    # Holdings rows
+    holding_rows = []
+    for t, pos in sorted(holdings.items()):
+        px      = scan_by_t.get(t, {}).get("weekly_close") or pos["entry_price"]
+        entry   = pos["entry_price"]
+        pnl_pct = (px / entry - 1) * 100
+        pnl_usd = (px / entry - 1) * pos["cost_basis"]
+        col     = "#4ade80" if pnl_pct >= 0 else "#f87171"
+        holding_rows.append(f"""
+        <tr>
+          <td><strong>{t}</strong></td><td>{pos.get('name','')}</td>
+          <td class="mono">{pos.get('region','')}</td>
+          <td class="mono">{pos.get('entry_date','')}</td>
+          <td class="mono">${entry:,.4f}</td><td class="mono">${px:,.4f}</td>
+          <td class="mono" style="color:{col};font-weight:600">{pnl_pct:+.2f}%</td>
+          <td class="mono" style="color:{col}">${pnl_usd:+,.0f}</td>
+          <td class="mono">${pos.get('cost_basis',0):,.0f}</td>
+          <td class="mono">{pos.get('rank_score_at_entry',0):.5f}</td>
+        </tr>""")
+
+    # Scan rows — qualifying first, sorted by rank_score desc
+    ok = [r for r in scan_results if r.get("status") == "ok"]
+    ok.sort(key=lambda r: (-int(r.get("momentum", False)), -r.get("rank_score", 0)))
+    scan_rows = []
+    for r in ok:
+        m    = r.get("momentum", False)
+        held = r["ticker"] in holdings
+        badge = ('<span class="badge-yes">YES</span>' if m
+                 else '<span class="badge-no">NO</span>')
+        hbadge = '<span class="badge-held">HELD</span>' if held else ""
+        scan_rows.append(f"""
+        <tr class="{'row-held' if held else ('row-yes' if m else '')}">
+          <td><strong>{r['ticker']}</strong></td><td>{r.get('name','')}</td>
+          <td class="mono">{r.get('region','')}</td>
+          <td class="mono">${r.get('weekly_close',0):,.4f}</td>
+          <td class="mono">{r.get('macd',0):+.4f}</td>
+          <td class="mono">{r.get('signal',0):+.4f}</td>
+          <td class="mono">{r.get('hist',0):+.4f}</td>
+          <td class="mono">{r.get('rank_score',0):.5f}</td>
+          <td>{badge} {hbadge}</td>
+        </tr>""")
+
+    # Trade log rows
+    trade_rows = []
+    for _, row in trade_log_df.iloc[::-1].head(300).iterrows():
+        ac  = row.get("action", "")
+        cls = "action-buy" if ac == "BUY" else "action-sell"
+        pnl = row.get("realized_pnl_pct", "")
+        pnl_html = ""
+        if str(pnl) not in ("", "nan"):
+            v   = float(pnl)
+            col = "#4ade80" if v >= 0 else "#f87171"
+            pnl_html = f'<span style="color:{col};font-weight:600">{v:+.2f}%</span>'
+        trade_rows.append(f"""
+        <tr>
+          <td class="mono">{row.get('date','')}</td>
+          <td><strong>{row.get('ticker','')}</strong></td>
+          <td>{row.get('name','')}</td>
+          <td><span class="{cls}">{ac}</span></td>
+          <td class="mono">${float(row.get('price',0)):,.4f}</td>
+          <td>{pnl_html}</td>
+          <td class="mono" style="color:var(--muted);font-size:11px">{row.get('reason','')}</td>
+        </tr>""")
+
+    nav_json = json.dumps({
+        "dates":    list(nav_df["date"]),
+        "values":   [float(v) for v in nav_df["nav"]],
+        "returns":  [float(v) for v in nav_df["weekly_return_pct"]],
+        "holdings": [int(v)   for v in nav_df["num_holdings"]],
+    })
+
+    warn_html = ""
+    if warnings:
+        items = "".join(f"<li>{w}</li>" for w in warnings)
+        warn_html = (f'<div class="warn-box"><strong>⚠ Data Warnings ({len(warnings)})</strong>'
+                     f'<ul>{items}</ul></div>')
+
+    cash_banner = (
+        f'<div class="cash-banner">⚠ PORTFOLIO IN CASH — only {q_count} stocks qualified '
+        f'this week (minimum {MIN_STOCKS} required). All positions exited.</div>'
+        if in_cash else ""
+    )
+
+    ok_count = len([r for r in scan_results if r.get("status") == "ok"])
+    cap_pct  = int(len(holdings) / MAX_POSITIONS * 100)
+
+    return f"""<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Internet Momentum Portfolio</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600&family=Manrope:wght@400;600;700;800&display=swap" rel="stylesheet">
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+<style>
+:root{{--bg:#07080d;--s1:#0f1018;--s2:#171820;--border:#23242f;--border2:#2e3040;
+      --green:#4ade80;--red:#f87171;--blue:#60a5fa;--amber:#fbbf24;--purple:#a78bfa;
+      --text:#dde1ed;--muted:#5a6070;--muted2:#3a3f50}}
+*{{box-sizing:border-box;margin:0;padding:0}}
+body{{background:var(--bg);color:var(--text);font-family:'Manrope',sans-serif;font-size:14px;line-height:1.65}}
+.mono{{font-family:'IBM Plex Mono',monospace}}
+.wrap{{max-width:1440px;margin:0 auto;padding:36px 28px}}
+.hdr{{display:flex;justify-content:space-between;align-items:flex-end;
+      padding-bottom:28px;border-bottom:1px solid var(--border);margin-bottom:36px}}
+.hdr h1{{font-size:clamp(20px,3.5vw,36px);font-weight:800;letter-spacing:-1.5px;
+         background:linear-gradient(120deg,var(--green),var(--blue));
+         -webkit-background-clip:text;-webkit-text-fill-color:transparent}}
+.hdr p{{font-size:11px;color:var(--muted);margin-top:4px;font-family:'IBM Plex Mono',monospace}}
+.hdr-r{{text-align:right;font-family:'IBM Plex Mono',monospace;font-size:11px;color:var(--muted);line-height:1.9}}
+.stat-grid{{display:grid;grid-template-columns:repeat(auto-fit,minmax(155px,1fr));gap:14px;margin-bottom:36px}}
+.card{{background:var(--s1);border:1px solid var(--border);border-radius:14px;padding:18px 20px;transition:border-color .2s}}
+.card:hover{{border-color:var(--border2)}}
+.card .lbl{{font-size:10px;font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:var(--muted);margin-bottom:10px}}
+.card .val{{font-size:23px;font-weight:800;font-family:'IBM Plex Mono',monospace;line-height:1}}
+.card .sub{{font-size:11px;color:var(--muted);margin-top:6px;font-family:'IBM Plex Mono',monospace}}
+.green{{color:var(--green)}}.red{{color:var(--red)}}.blue{{color:var(--blue)}}.amber{{color:var(--amber)}}
+.cap-track{{background:var(--s2);border-radius:99px;height:5px;overflow:hidden;margin-top:10px}}
+.cap-fill{{background:linear-gradient(90deg,var(--green),var(--blue));height:100%;border-radius:99px}}
+.section{{margin-bottom:44px}}
+.sec-hdr{{display:flex;align-items:center;gap:12px;margin-bottom:14px}}
+.sec-hdr h2{{font-size:15px;font-weight:700;letter-spacing:-.3px}}
+.tag{{font-size:10px;font-weight:700;letter-spacing:.06em;text-transform:uppercase;
+      background:var(--s2);border:1px solid var(--border);color:var(--muted);
+      border-radius:99px;padding:3px 10px;white-space:nowrap}}
+.chart-box{{background:var(--s1);border:1px solid var(--border);border-radius:16px;padding:24px}}
+.tbl-wrap{{overflow-x:auto;border-radius:12px;border:1px solid var(--border)}}
+table{{width:100%;border-collapse:collapse;font-size:13px}}
+thead{{background:var(--s2)}}
+th{{padding:10px 13px;text-align:left;font-size:10px;font-weight:700;
+    letter-spacing:.07em;text-transform:uppercase;color:var(--muted);
+    border-bottom:1px solid var(--border);white-space:nowrap}}
+tr{{border-bottom:1px solid var(--border);transition:background .12s}}
+tr:last-child{{border-bottom:none}}
+tr:hover{{background:var(--s2)}}
+tr.row-yes{{background:rgba(74,222,128,.03)}}
+tr.row-held{{background:rgba(96,165,250,.05);border-left:2px solid var(--blue)}}
+td{{padding:9px 13px;vertical-align:middle}}
+.badge-yes{{background:rgba(74,222,128,.15);color:var(--green);border:1px solid rgba(74,222,128,.3);
+            border-radius:5px;padding:2px 7px;font-size:10px;font-weight:700;font-family:'IBM Plex Mono',monospace}}
+.badge-no{{background:rgba(248,113,113,.1);color:var(--red);border:1px solid rgba(248,113,113,.2);
+           border-radius:5px;padding:2px 7px;font-size:10px;font-weight:700;font-family:'IBM Plex Mono',monospace}}
+.badge-held{{background:rgba(96,165,250,.15);color:var(--blue);border:1px solid rgba(96,165,250,.3);
+             border-radius:5px;padding:2px 7px;font-size:10px;font-weight:700;font-family:'IBM Plex Mono',monospace}}
+.action-buy{{background:rgba(74,222,128,.12);color:var(--green);border-radius:4px;
+             padding:2px 8px;font-size:10px;font-weight:700;font-family:'IBM Plex Mono',monospace}}
+.action-sell{{background:rgba(248,113,113,.1);color:var(--red);border-radius:4px;
+              padding:2px 8px;font-size:10px;font-weight:700;font-family:'IBM Plex Mono',monospace}}
+.warn-box{{background:rgba(251,191,36,.07);border:1px solid rgba(251,191,36,.25);
+           border-radius:10px;padding:14px 18px;margin-bottom:20px;color:var(--amber)}}
+.warn-box ul{{padding-left:18px;margin-top:6px;font-family:'IBM Plex Mono',monospace;font-size:12px}}
+.cash-banner{{background:rgba(251,191,36,.1);border:1px solid rgba(251,191,36,.3);
+              border-radius:12px;padding:18px 24px;margin-bottom:24px;
+              text-align:center;font-size:14px;font-weight:700;color:var(--amber)}}
+footer{{margin-top:60px;padding-top:22px;border-top:1px solid var(--border);
+        font-size:11px;color:var(--muted);font-family:'IBM Plex Mono',monospace;
+        text-align:center;line-height:1.9}}
+@media(max-width:640px){{.hdr{{flex-direction:column;align-items:flex-start;gap:10px}}.hdr-r{{text-align:left}}}}
+</style>
+</head>
+<body><div class="wrap">
+
+<div class="hdr">
+  <div>
+    <h1>Internet Momentum Portfolio</h1>
+    <p>Signal: MACD&gt;0 AND Hist&gt;0 · Weekly · Rank: Hist/Close · Max {MAX_POSITIONS} positions · Hold until signal off</p>
+  </div>
+  <div class="hdr-r">Last scan: {run_date}<br>Inception: {inception}<br>Starting NAV: $100,000</div>
+</div>
+
+{warn_html}{cash_banner}
+
+<div class="stat-grid">
+  <div class="card"><div class="lbl">Portfolio NAV</div>
+    <div class="val blue">${nav:,.0f}</div><div class="sub">from $100,000</div></div>
+  <div class="card"><div class="lbl">Total Return</div>
+    <div class="val {'green' if total_return>=0 else 'red'}">{total_return:+.2f}%</div>
+    <div class="sub">since inception</div></div>
+  <div class="card"><div class="lbl">This Week</div>
+    <div class="val {'green' if latest_wret and latest_wret[0]=='+' else 'red'}">{latest_wret}</div>
+    <div class="sub">weekly return</div></div>
+  <div class="card"><div class="lbl">Holdings</div>
+    <div class="val blue">{len(holdings)}<span style="font-size:14px;color:var(--muted)">/{MAX_POSITIONS}</span></div>
+    <div class="cap-track"><div class="cap-fill" style="width:{cap_pct}%"></div></div></div>
+  <div class="card"><div class="lbl">Qualifying</div>
+    <div class="val {'amber' if q_count<MIN_STOCKS else 'green'}">{q_count}</div>
+    <div class="sub">of {ok_count} scanned</div></div>
+  <div class="card"><div class="lbl">Universe</div>
+    <div class="val blue">{len(scan_results)}</div><div class="sub">tickers tracked</div></div>
+</div>
+
+<div class="section">
+  <div class="sec-hdr"><h2>NAV History</h2><span class="tag">$100k starting capital</span></div>
+  <div class="chart-box"><canvas id="navChart" height="75"></canvas></div>
+</div>
+
+<div class="section">
+  <div class="sec-hdr"><h2>Current Holdings</h2>
+    <span class="tag">{len(holdings)} positions · equal weight at entry · hold until signal off</span></div>
+  {'<p style="padding:20px;color:var(--muted);font-family:IBM Plex Mono,monospace">No positions — portfolio in cash.</p>' if not holding_rows else f'''
+  <div class="tbl-wrap"><table>
+    <thead><tr><th>Ticker</th><th>Name</th><th>Region</th><th>Entry Date</th>
+      <th>Entry Price</th><th>Current</th><th>P&L %</th><th>P&L $</th>
+      <th>Cost Basis</th><th>Rank Score</th></tr></thead>
+    <tbody>{"".join(holding_rows)}</tbody></table></div>'''}
+</div>
+
+<div class="section">
+  <div class="sec-hdr"><h2>This Week's Scan</h2>
+    <span class="tag">{q_count} qualifying · sorted by rank score</span></div>
+  <div class="tbl-wrap"><table>
+    <thead><tr><th>Ticker</th><th>Name</th><th>Region</th><th>Close</th>
+      <th>MACD</th><th>Signal</th><th>Hist</th><th>Rank Score</th><th>Status</th></tr></thead>
+    <tbody>{"".join(scan_rows)}</tbody></table></div>
+</div>
+
+<div class="section">
+  <div class="sec-hdr"><h2>Trade Log</h2><span class="tag">most recent first</span></div>
+  <div class="tbl-wrap"><table>
+    <thead><tr><th>Date</th><th>Ticker</th><th>Name</th><th>Action</th>
+      <th>Price</th><th>P&L %</th><th>Reason</th></tr></thead>
+    <tbody>{"".join(trade_rows) if trade_rows
+      else '<tr><td colspan="7" style="color:var(--muted);padding:20px;font-family:IBM Plex Mono,monospace">No trades yet.</td></tr>'
+    }</tbody></table></div>
+</div>
+
+<footer>
+  Internet Momentum Portfolio · MACD&gt;0 AND Hist&gt;0 (EMA {EMA_FAST}/{EMA_SLOW}/{EMA_SIG}, Weekly) ·
+  Ranked Hist/Close · Max {MAX_POSITIONS} positions · Min {MIN_STOCKS} to stay invested ·
+  Hold until signal off · $100k NAV · Not financial advice.
+</footer></div>
+
+<script>
+const D={nav_json};
+const ctx=document.getElementById('navChart').getContext('2d');
+const g=ctx.createLinearGradient(0,0,0,280);
+g.addColorStop(0,'rgba(74,222,128,.22)');g.addColorStop(1,'rgba(74,222,128,0)');
+new Chart(ctx,{{type:'line',
+  data:{{labels:D.dates,datasets:[{{label:'NAV',data:D.values,
+    borderColor:'#4ade80',backgroundColor:g,borderWidth:2,
+    pointRadius:D.dates.length>26?0:4,pointHoverRadius:6,
+    pointBackgroundColor:'#4ade80',tension:.35,fill:true}}]}},
+  options:{{responsive:true,interaction:{{mode:'index',intersect:false}},
+    plugins:{{legend:{{display:false}},tooltip:{{
+      backgroundColor:'#0f1018',borderColor:'#23242f',borderWidth:1,
+      titleColor:'#4ade80',bodyColor:'#dde1ed',
+      callbacks:{{
+        label:c=>' NAV: $'+c.parsed.y.toLocaleString(undefined,{{maximumFractionDigits:0}}),
+        afterLabel:c=>{{
+          const r=D.returns[c.dataIndex],h=D.holdings[c.dataIndex];
+          return[' Week: '+(r>=0?'+':'')+r.toFixed(2)+'%',' Holdings: '+h];
+        }}
+      }}
+    }}}},
+    scales:{{
+      x:{{grid:{{color:'#23242f'}},ticks:{{color:'#5a6070',font:{{family:'IBM Plex Mono',size:11}},maxTicksLimit:14}}}},
+      y:{{grid:{{color:'#23242f'}},ticks:{{color:'#5a6070',font:{{family:'IBM Plex Mono',size:11}},
+           callback:v=>'$'+v.toLocaleString()}}}}
+    }}
+  }}
+}});
+</script></body></html>"""
+
+# ── Main ──────────────────────────────────────────────────────────────────────
+def main():
+    run_date = date.today()
+    log.info("=" * 60)
+    log.info("Internet Momentum Tracker  —  %s", run_date)
+    log.info("=" * 60)
+
+    tickers_df = load_tickers()
+
+    if not yahoo_reachable():
+        log.error("Aborting — Yahoo Finance unreachable.")
+        return
+
+    scan_results, warnings = [], []
+    for _, row in tickers_df.iterrows():
+        r = get_stock_data(
+            str(row["ticker"]).strip(),
+            str(row.get("name", row["ticker"])).strip(),
+            str(row.get("region", "")).strip(),
+        )
+        scan_results.append(r)
+        if r.get("status") not in ("ok",):
+            warnings.append(f"{r['ticker']}: {r['status']}")
+
+    save_scan(scan_results, run_date)
+    scan_by_t = {r["ticker"]: r for r in scan_results}
+
+    q_count = sum(
+        1 for r in scan_results
+        if r.get("momentum") and r.get("status") == "ok"
+    )
+    log.info("Qualifying: %d / %d", q_count, len(scan_results))
+
+    state        = load_state()
+    nav_df       = load_nav_history()
+    trade_log_df = load_trade_log()
+
+    trade_log_df, q_count = run_portfolio(
+        state, scan_results, scan_by_t, run_date, trade_log_df
+    )
+    state["last_run"] = str(run_date)
+
+    nav_df = append_nav(
+        nav_df, run_date, state["nav"],
+        len(state["holdings"]), state.get("in_cash", False), q_count
+    )
+
+    save_state(state)
+    nav_df.to_csv(NAV_HISTORY, index=False)
+    trade_log_df.to_csv(TRADE_LOG, index=False)
+
+    log.info("NAV: $%.2f  |  Holdings: %d/%d  |  Cash: $%.2f",
+             state["nav"], len(state["holdings"]), MAX_POSITIONS, state["cash"])
+
+    html = build_html(state, scan_results, nav_df, trade_log_df,
+                      run_date, warnings, q_count)
+    (DOCS / "index.html").write_text(html, encoding="utf-8")
+    log.info("Dashboard written → docs/index.html")
+    log.info("Done. ✓")
+
+if __name__ == "__main__":
+    main()

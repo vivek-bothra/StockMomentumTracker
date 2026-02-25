@@ -1,0 +1,96 @@
+ticker,name,region
+GOOGL,Alphabet,US
+META,Meta Platforms,US
+AMZN,Amazon,US
+NFLX,Netflix,US
+EBAY,eBay,US
+PINS,Pinterest,US
+RDDT,Reddit,US
+SNAP,Snap,US
+BKNG,Booking Holdings,US
+EXPE,Expedia,US
+ABNB,Airbnb,US
+PYPL,PayPal,US
+COIN,Coinbase,US
+HOOD,Robinhood,US
+SOFI,SoFi Technologies,US
+DASH,DoorDash,US
+UBER,Uber,US
+LYFT,Lyft,US
+ZG,Zillow,US
+CARG,CarGurus,US
+SHOP,Shopify,US
+NET,Cloudflare,US
+AKAM,Akamai,US
+TDOC,Teladoc,US
+MTCH,Match Group,US
+BMBL,Bumble,US
+ANGI,Angi Inc,US
+SSTK,Shutterstock,US
+TTD,The Trade Desk,US
+VMEO,Vimeo,US
+TWLO,Twilio,US
+DBX,Dropbox,US
+ZM,Zoom,US
+GDDY,GoDaddy,US
+WIX,Wix,US
+UPWK,Upwork,US
+FVRR,Fiverr,US
+ETSY,Etsy,US
+CHWY,Chewy,US
+YELP,Yelp,US
+TRIP,TripAdvisor,US
+GRPN,Groupon,US
+NTES,NetEase,US
+BIDU,Baidu,US
+JD,JD.com,US
+BABA,Alibaba,US
+PDD,PDD Holdings,US
+MELI,MercadoLibre,US
+SE,Sea Limited,US
+W,Wayfair,US
+ROKU,Roku,US
+RBLX,Roblox,US
+U,Unity Software,US
+EA,Electronic Arts,US
+TTWO,Take-Two Interactive,US
+NU,Nu Holdings,US
+GRAB,Grab Holdings,US
+CPNG,Coupang,US
+MMYT,MakeMyTrip,US
+TCOM,Trip.com,US
+TME,Tencent Music,US
+BILI,Bilibili,US
+HUYA,Huya,US
+IQ,iQIYI,US
+XYZ,Block,US
+ADYEN.AS,Adyen,EU
+PRX.AS,Prosus,EU
+TKWY.AS,Just Eat Takeaway,EU
+ZAL.DE,Zalando,EU
+DHER.DE,Delivery Hero,EU
+HFG.DE,HomeToGo,EU
+RMV.L,Rightmove,UK
+AUTO.L,Auto Trader,UK
+ASC.L,ASOS,UK
+0700.HK,Tencent,HK
+3690.HK,Meituan,HK
+1024.HK,Kuaishou,HK
+4755.T,Rakuten,JP
+3659.T,Nexon,JP
+4385.T,Mercari,JP
+035420.KS,NAVER,KR
+036570.KS,NCSoft,KR
+035720.KS,Kakao,KR
+069080.KS,Kakao Games,KR
+259960.KS,Krafton,KR
+REA.AX,REA Group,AU
+JUSTDIAL.NS,Just Dial,IN
+NAUKRI.NS,Info Edge,IN
+SWIGGY.NS,Swiggy,IN
+NYKAA.NS,Nykaa,IN
+PAYTM.NS,Paytm,IN
+POLICYBZR.NS,PB Fintech,IN
+JMIA,Jumia Technologies,US
+ALE.WA,Allegro,PL
+TRVG,Trivago,US
