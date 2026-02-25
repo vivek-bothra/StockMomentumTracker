@@ -4,70 +4,63 @@
 <meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
 <title>Internet Momentum Portfolio</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
-<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600&family=Manrope:wght@400;600;700;800&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Space+Grotesk:wght@300;400;500;700&family=Space+Mono:wght@400;700&display=swap" rel="stylesheet">
 <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
 <style>
-:root{--bg:#07080d;--s1:#0f1018;--s2:#171820;--border:#23242f;--border2:#2e3040;
-      --green:#4ade80;--red:#f87171;--blue:#60a5fa;--amber:#fbbf24;--purple:#a78bfa;
-      --text:#dde1ed;--muted:#5a6070;--muted2:#3a3f50}
+:root{--bg:#000;--surface:rgba(255,255,255,.03);--surface-2:rgba(255,255,255,.05);--border:rgba(255,255,255,.08);
+      --border-strong:rgba(255,255,255,.14);--gold:#f5c842;--gold2:#e8a020;--green:#00ff88;--red:#ff4466;
+      --blue:#00ccff;--slate:#8899bb;--text:#fff;--muted:rgba(255,255,255,.55);--muted-2:rgba(255,255,255,.35)}
 *{box-sizing:border-box;margin:0;padding:0}
-body{background:var(--bg);color:var(--text);font-family:'Manrope',sans-serif;font-size:14px;line-height:1.65}
-.mono{font-family:'IBM Plex Mono',monospace}
-.wrap{max-width:1440px;margin:0 auto;padding:36px 28px}
-.hdr{display:flex;justify-content:space-between;align-items:flex-end;
-      padding-bottom:28px;border-bottom:1px solid var(--border);margin-bottom:36px}
-.hdr h1{font-size:clamp(20px,3.5vw,36px);font-weight:800;letter-spacing:-1.5px;
-         background:linear-gradient(120deg,var(--green),var(--blue));
-         -webkit-background-clip:text;-webkit-text-fill-color:transparent}
-.hdr p{font-size:11px;color:var(--muted);margin-top:4px;font-family:'IBM Plex Mono',monospace}
-.hdr-r{text-align:right;font-family:'IBM Plex Mono',monospace;font-size:11px;color:var(--muted);line-height:1.9}
+html,body{width:100%;min-height:100%}
+body{overflow-x:hidden;background:radial-gradient(1200px 700px at 15% -10%,rgba(0,255,136,.08),transparent 60%),
+     radial-gradient(900px 600px at 100% 0,rgba(0,204,255,.09),transparent 58%),var(--bg);
+     color:var(--text);font-family:'Space Grotesk',sans-serif;font-size:14px;line-height:1.65}
+.mono{font-family:'Space Mono',monospace}
+.wrap{position:relative;z-index:1;max-width:1440px;margin:0 auto;padding:36px 28px 100px}
+.hdr{display:flex;justify-content:space-between;align-items:flex-end;padding-bottom:28px;border-bottom:1px solid var(--border);margin-bottom:36px}
+.hdr h1{font-family:'Bebas Neue',sans-serif;font-size:clamp(40px,5vw,70px);font-weight:400;letter-spacing:.06em;line-height:.92;
+        background:linear-gradient(180deg,#fff 28%,rgba(255,255,255,.45));-webkit-background-clip:text;-webkit-text-fill-color:transparent;
+        filter:drop-shadow(0 0 28px rgba(255,255,255,.1))}
+.hdr p{font-size:11px;color:var(--muted-2);margin-top:10px;font-family:'Space Mono',monospace;letter-spacing:.1em;text-transform:uppercase}
+.hdr-r{text-align:right;font-family:'Space Mono',monospace;font-size:11px;color:var(--muted-2);line-height:1.9;letter-spacing:.05em}
 .stat-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(155px,1fr));gap:14px;margin-bottom:36px}
-.card{background:var(--s1);border:1px solid var(--border);border-radius:14px;padding:18px 20px;transition:border-color .2s}
-.card:hover{border-color:var(--border2)}
-.card .lbl{font-size:10px;font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:var(--muted);margin-bottom:10px}
-.card .val{font-size:23px;font-weight:800;font-family:'IBM Plex Mono',monospace;line-height:1}
-.card .sub{font-size:11px;color:var(--muted);margin-top:6px;font-family:'IBM Plex Mono',monospace}
-.green{color:var(--green)}.red{color:var(--red)}.blue{color:var(--blue)}.amber{color:var(--amber)}
-.cap-track{background:var(--s2);border-radius:99px;height:5px;overflow:hidden;margin-top:10px}
+.card{background:var(--surface);border:1px solid var(--border);border-left:3px solid transparent;border-radius:12px;padding:18px 20px;transition:background .2s,border-color .2s}
+.card:hover{background:var(--surface-2);border-color:var(--border-strong)}
+.card .lbl{font-size:10px;font-weight:700;letter-spacing:.15em;text-transform:uppercase;color:var(--muted-2);margin-bottom:10px;font-family:'Space Mono',monospace}
+.card .val{font-size:23px;font-weight:700;font-family:'Space Mono',monospace;line-height:1}
+.card .sub{font-size:11px;color:var(--muted);margin-top:6px;font-family:'Space Mono',monospace}
+.green{color:var(--green)}.red{color:var(--red)}.blue{color:var(--blue)}.amber{color:var(--gold)}
+.cap-track{background:rgba(255,255,255,.08);border-radius:99px;height:5px;overflow:hidden;margin-top:10px}
 .cap-fill{background:linear-gradient(90deg,var(--green),var(--blue));height:100%;border-radius:99px}
 .section{margin-bottom:44px}
 .sec-hdr{display:flex;align-items:center;gap:12px;margin-bottom:14px}
-.sec-hdr h2{font-size:15px;font-weight:700;letter-spacing:-.3px}
-.tag{font-size:10px;font-weight:700;letter-spacing:.06em;text-transform:uppercase;
-      background:var(--s2);border:1px solid var(--border);color:var(--muted);
-      border-radius:99px;padding:3px 10px;white-space:nowrap}
-.chart-box{background:var(--s1);border:1px solid var(--border);border-radius:16px;padding:24px}
-.tbl-wrap{overflow-x:auto;border-radius:12px;border:1px solid var(--border)}
+.sec-hdr h2{font-size:15px;font-weight:700;letter-spacing:.02em}
+.tag{font-size:10px;font-weight:700;letter-spacing:.1em;text-transform:uppercase;background:rgba(255,255,255,.04);border:1px solid var(--border);color:var(--muted);border-radius:99px;padding:3px 10px;white-space:nowrap;font-family:'Space Mono',monospace}
+.chart-box{background:var(--surface);border:1px solid var(--border);border-radius:14px;padding:24px}
+.tbl-wrap{overflow-x:auto;border-radius:12px;border:1px solid var(--border);background:rgba(255,255,255,.02)}
 table{width:100%;border-collapse:collapse;font-size:13px}
-thead{background:var(--s2)}
-th{padding:10px 13px;text-align:left;font-size:10px;font-weight:700;
-    letter-spacing:.07em;text-transform:uppercase;color:var(--muted);
-    border-bottom:1px solid var(--border);white-space:nowrap}
-tr{border-bottom:1px solid var(--border);transition:background .12s}
+thead{background:rgba(255,255,255,.05)}
+th{padding:10px 13px;text-align:left;font-size:10px;font-weight:700;letter-spacing:.12em;text-transform:uppercase;color:var(--muted);border-bottom:1px solid var(--border);white-space:nowrap;font-family:'Space Mono',monospace}
+tr{border-bottom:1px solid rgba(255,255,255,.06);transition:background .12s}
 tr:last-child{border-bottom:none}
-tr:hover{background:var(--s2)}
-tr.row-yes{background:rgba(74,222,128,.03)}
-tr.row-held{background:rgba(96,165,250,.05);border-left:2px solid var(--blue)}
+tr:hover{background:rgba(255,255,255,.04)}
+tr.row-yes{background:rgba(0,255,136,.05)}
+tr.row-held{background:rgba(0,204,255,.08);border-left:2px solid var(--blue)}
 td{padding:9px 13px;vertical-align:middle}
-.badge-yes{background:rgba(74,222,128,.15);color:var(--green);border:1px solid rgba(74,222,128,.3);
-            border-radius:5px;padding:2px 7px;font-size:10px;font-weight:700;font-family:'IBM Plex Mono',monospace}
-.badge-no{background:rgba(248,113,113,.1);color:var(--red);border:1px solid rgba(248,113,113,.2);
-           border-radius:5px;padding:2px 7px;font-size:10px;font-weight:700;font-family:'IBM Plex Mono',monospace}
-.badge-held{background:rgba(96,165,250,.15);color:var(--blue);border:1px solid rgba(96,165,250,.3);
-             border-radius:5px;padding:2px 7px;font-size:10px;font-weight:700;font-family:'IBM Plex Mono',monospace}
-.action-buy{background:rgba(74,222,128,.12);color:var(--green);border-radius:4px;
-             padding:2px 8px;font-size:10px;font-weight:700;font-family:'IBM Plex Mono',monospace}
-.action-sell{background:rgba(248,113,113,.1);color:var(--red);border-radius:4px;
-              padding:2px 8px;font-size:10px;font-weight:700;font-family:'IBM Plex Mono',monospace}
-.warn-box{background:rgba(251,191,36,.07);border:1px solid rgba(251,191,36,.25);
-           border-radius:10px;padding:14px 18px;margin-bottom:20px;color:var(--amber)}
-.warn-box ul{padding-left:18px;margin-top:6px;font-family:'IBM Plex Mono',monospace;font-size:12px}
-.cash-banner{background:rgba(251,191,36,.1);border:1px solid rgba(251,191,36,.3);
-              border-radius:12px;padding:18px 24px;margin-bottom:24px;
-              text-align:center;font-size:14px;font-weight:700;color:var(--amber)}
-footer{margin-top:60px;padding-top:22px;border-top:1px solid var(--border);
-        font-size:11px;color:var(--muted);font-family:'IBM Plex Mono',monospace;
-        text-align:center;line-height:1.9}
+.badge-yes{background:rgba(0,255,136,.13);color:var(--green);border:1px solid rgba(0,255,136,.3);border-radius:5px;padding:2px 7px;font-size:10px;font-weight:700;font-family:'Space Mono',monospace}
+.badge-no{background:rgba(255,68,102,.13);color:var(--red);border:1px solid rgba(255,68,102,.3);border-radius:5px;padding:2px 7px;font-size:10px;font-weight:700;font-family:'Space Mono',monospace}
+.badge-held{background:rgba(0,204,255,.13);color:var(--blue);border:1px solid rgba(0,204,255,.3);border-radius:5px;padding:2px 7px;font-size:10px;font-weight:700;font-family:'Space Mono',monospace}
+.action-buy{background:rgba(0,255,136,.12);color:var(--green);border-radius:4px;padding:2px 8px;font-size:10px;font-weight:700;font-family:'Space Mono',monospace}
+.action-sell{background:rgba(255,68,102,.12);color:var(--red);border-radius:4px;padding:2px 8px;font-size:10px;font-weight:700;font-family:'Space Mono',monospace}
+.warn-box{background:rgba(245,200,66,.1);border:1px solid rgba(245,200,66,.35);border-radius:10px;padding:14px 18px;margin-bottom:20px;color:var(--gold)}
+.warn-box ul{padding-left:18px;margin-top:6px;font-family:'Space Mono',monospace;font-size:12px}
+.cash-banner{background:rgba(245,200,66,.1);border:1px solid rgba(245,200,66,.35);border-radius:12px;padding:18px 24px;margin-bottom:24px;text-align:center;font-size:14px;font-weight:700;color:var(--gold)}
+button,.btn,input,select,textarea{font-family:'Space Grotesk',sans-serif;font-size:13px;border-radius:8px}
+button,.btn{background:linear-gradient(180deg,rgba(0,255,136,.18),rgba(0,255,136,.08));color:var(--green);border:1px solid rgba(0,255,136,.35);padding:8px 14px;cursor:pointer;transition:all .2s}
+button:hover,.btn:hover{background:linear-gradient(180deg,rgba(0,255,136,.24),rgba(0,255,136,.12));box-shadow:0 0 16px rgba(0,255,136,.15)}
+input,select,textarea{background:rgba(255,255,255,.03);color:var(--text);border:1px solid var(--border);padding:8px 10px;outline:none}
+input:focus,select:focus,textarea:focus{border-color:rgba(0,204,255,.65);box-shadow:0 0 0 3px rgba(0,204,255,.12)}
+footer{margin-top:60px;padding-top:22px;border-top:1px solid var(--border);font-size:11px;color:var(--muted-2);font-family:'Space Mono',monospace;text-align:center;line-height:1.9;letter-spacing:.05em;text-transform:uppercase}
 @media(max-width:640px){.hdr{flex-direction:column;align-items:flex-start;gap:10px}.hdr-r{text-align:left}}
 </style>
 </head>
@@ -76,7 +69,7 @@ footer{margin-top:60px;padding-top:22px;border-top:1px solid var(--border);
 <div class="hdr">
   <div>
     <h1>Internet Momentum Portfolio</h1>
-    <p>Signal: MACD&gt;0 AND Hist&gt;0 · Weekly · Rank: Hist/Close · Max 20 positions · Hold until signal off</p>
+    <p>Weekly momentum model dashboard</p>
   </div>
   <div class="hdr-r">Last scan: 2026-02-25<br>Inception: 2026-02-25<br>Starting NAV: $100,000</div>
 </div>
@@ -1081,8 +1074,7 @@ footer{margin-top:60px;padding-top:22px;border-top:1px solid var(--border);
 </div>
 
 <footer>
-  Internet Momentum Portfolio · MACD&gt;0 AND Hist&gt;0 (EMA 12/26/9, Weekly) ·
-  Ranked Hist/Close · Max 20 positions · Min 10 to stay invested ·
+  Internet Momentum Portfolio · Ranked Hist/Close · Max 20 positions · Min 10 to stay invested ·
   Hold until signal off · $100k NAV · Not financial advice.
 </footer></div>
 
