@@ -18,10 +18,23 @@ body{overflow-x:hidden;background:radial-gradient(1200px 700px at 15% -10%,rgba(
 .mono{font-family:'Space Mono',monospace}
 .wrap{position:relative;z-index:1;max-width:1440px;margin:0 auto;padding:36px 28px 100px}
 .hdr{display:flex;justify-content:space-between;align-items:flex-end;padding-bottom:28px;border-bottom:1px solid var(--border);margin-bottom:36px}
-.hdr h1{font-family:'Bebas Neue',sans-serif;font-size:clamp(40px,5vw,70px);font-weight:400;letter-spacing:.06em;line-height:.92;
-        background:linear-gradient(180deg,#fff 28%,rgba(255,255,255,.45));-webkit-background-clip:text;-webkit-text-fill-color:transparent;
-        filter:drop-shadow(0 0 28px rgba(255,255,255,.1))}
-.hdr h1 .tankrich{background:linear-gradient(135deg,var(--green),var(--blue));-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text}
+.hdr h1{
+  font-family:'Bebas Neue',sans-serif;
+  font-size:clamp(40px,5vw,70px);
+  font-weight:400;
+  letter-spacing:.06em;
+  line-height:.92;
+  background:linear-gradient(180deg,#fff 28%,rgba(255,255,255,.45));
+  -webkit-background-clip:text;
+  -webkit-text-fill-color:transparent;
+  filter:drop-shadow(0 0 28px rgba(255,255,255,.1));
+}
+.hdr h1 .tankrich{
+  background:linear-gradient(135deg,var(--green),var(--blue));
+  -webkit-background-clip:text;
+  -webkit-text-fill-color:transparent;
+  background-clip:text;
+}
 .hdr p{font-size:11px;color:var(--muted-2);margin-top:10px;font-family:'Space Mono',monospace;letter-spacing:.1em;text-transform:uppercase}
 .hdr-r{text-align:right;font-family:'Space Mono',monospace;font-size:11px;color:var(--muted-2);line-height:1.9;letter-spacing:.05em}
 .stat-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(155px,1fr));gap:14px;margin-bottom:36px}
