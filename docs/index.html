@@ -23,6 +23,9 @@ body{overflow-x:hidden;background:radial-gradient(1200px 700px at 15% -10%,rgba(
         filter:drop-shadow(0 0 28px rgba(255,255,255,.1))}
 .hdr p{font-size:11px;color:var(--muted-2);margin-top:10px;font-family:'Space Mono',monospace;letter-spacing:.1em;text-transform:uppercase}
 .hdr-r{text-align:right;font-family:'Space Mono',monospace;font-size:11px;color:var(--muted-2);line-height:1.9;letter-spacing:.05em}
+.logic-link{margin-top:8px;font-size:12px;color:var(--muted)}
+.logic-link a{color:var(--blue);text-decoration:none;border-bottom:1px dotted rgba(0,204,255,.45)}
+.logic-link a:hover{color:#7fe8ff;border-bottom-color:rgba(127,232,255,.85)}
 .stat-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(155px,1fr));gap:14px;margin-bottom:36px}
 .card{background:var(--surface);border:1px solid var(--border);border-left:3px solid transparent;border-radius:12px;padding:18px 20px;transition:background .2s,border-color .2s}
 .card:hover{background:var(--surface-2);border-color:var(--border-strong)}
@@ -70,6 +73,7 @@ footer{margin-top:60px;padding-top:22px;border-top:1px solid var(--border);font-
   <div>
     <h1>Internet Momentum Portfolio</h1>
     <p>Weekly momentum model dashboard</p>
+    <p class="logic-link">New here? Read the strategy logic: <a href="https://www.tankrich.com.au/p/momentum-indicator-for-internet-companies?utm_source=publication-search" target="_blank" rel="noopener noreferrer">Momentum Indicator for Internet Companies</a></p>
   </div>
   <div class="hdr-r">Last scan: 2026-02-25<br>Inception: 2026-02-25<br>Starting NAV: $100,000</div>
 </div>
