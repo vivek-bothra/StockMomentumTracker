@@ -14,7 +14,7 @@ Every Saturday, the script:
 1. Looks at all stocks in `tickers.csv`
 2. Checks a momentum signal (MACD)
 3. Keeps only stocks that pass the rule
-4. If too few pass, moves everything to cash
+4. If too few pass, or if S&P 500 EMA10 is below EMA20, moves everything to cash
 5. Otherwise, splits money equally across the passing stocks
 6. Updates performance history, trade log, and dashboard files
 7. Publishes the dashboard through GitHub Pages
@@ -29,6 +29,7 @@ Every Saturday, the script:
   - MACD is above 0
   - MACD is above its signal line (histogram > 0)
 - If **fewer than 10 stocks** qualify, the model goes **100% cash**
+- If **S&P 500 EMA10 is below EMA20**, the model also goes **100% cash**
 
 > This is fully rule-based. No manual stock picking once the list is set.
 
