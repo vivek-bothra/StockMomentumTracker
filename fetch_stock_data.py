@@ -50,6 +50,8 @@ STARTING_NAV  = 100_000.0
 MAX_POSITIONS = 20
 MIN_STOCKS    = 10
 EMA_FAST, EMA_SLOW, EMA_SIG = 12, 26, 9
+MARKET_TICKER = "^GSPC"
+MARKET_EMA_FAST, MARKET_EMA_SLOW = 10, 20
 
 # ── HTTP session ──────────────────────────────────────────────────────────────
 def _make_session():
@@ -171,6 +173,40 @@ def get_stock_data(ticker: str, name: str, region: str) -> dict:
     finally:
         time.sleep(1.5)
 
+
+def get_market_trend() -> dict:
+    """Market filter: allow entries only when S&P 500 EMA10 >= EMA20."""
+    base = {
+        "ticker": MARKET_TICKER,
+        "ema10": None,
+        "ema20": None,
+        "risk_on": False,
+        "status": "unknown",
+    }
+    try:
+        log.info("Fetching market filter data for %s", MARKET_TICKER)
+        df = fetch_ticker(MARKET_TICKER)
+        if df is None or df.empty:
+            return {**base, "status": "no_data"}
+
+        close = df["Close"].dropna()
+        if len(close) < MARKET_EMA_SLOW:
+            return {**base, "status": "insufficient_history"}
+
+        ema10 = float(close.ewm(span=MARKET_EMA_FAST, adjust=False).mean().iloc[-1])
+        ema20 = float(close.ewm(span=MARKET_EMA_SLOW, adjust=False).mean().iloc[-1])
+
+        return {
+            **base,
+            "ema10": round(ema10, 4),
+            "ema20": round(ema20, 4),
+            "risk_on": bool(ema10 >= ema20),
+            "status": "ok",
+        }
+    except Exception as e:
+        log.error("Error fetching market filter: %s", e)
+        return {**base, "status": f"error: {e}"}
+
 # ── State ─────────────────────────────────────────────────────────────────────
 def load_state() -> dict:
     if PORTFOLIO_STATE.exists():
@@ -241,7 +277,7 @@ def record_trade(tdf, run_date, ticker, name, action,
 # ── Portfolio engine ──────────────────────────────────────────────────────────
 def run_portfolio(state: dict, scan_results: list,
                   scan_by_t: dict, run_date: date,
-                  trade_df: pd.DataFrame):
+                  trade_df: pd.DataFrame, market_trend: dict):
     """
     Returns (updated_trade_df, qualifying_count).
     Mutates state in-place.
@@ -249,7 +285,7 @@ def run_portfolio(state: dict, scan_results: list,
     Flow:
       1. Mark NAV to market.
       2. Sell holdings whose signal is OFF.
-      3. Check < MIN_STOCKS gate → full cash if triggered.
+      3. Check risk gates (< MIN_STOCKS or S&P500 EMA10 < EMA20) → full cash if triggered.
       4. Fill spare capacity (up to MAX_POSITIONS) from ranked candidates.
          Entry size = NAV ÷ (current holdings + new buys).
     """
@@ -288,9 +324,15 @@ def run_portfolio(state: dict, scan_results: list,
     # Re-mark after sells
     state["nav"] = mark_to_market(state, scan_by_t)
 
-    # ── 3. < MIN_STOCKS gate ──────────────────────────────────────────────
+    # ── 3. Risk gates ─────────────────────────────────────────────────────
+    gate_reasons = []
     if q_count < MIN_STOCKS:
-        log.warning("Only %d qualifying (< %d). Exiting all → cash.", q_count, MIN_STOCKS)
+        gate_reasons.append(f"qualifying_lt_{MIN_STOCKS}")
+    if not market_trend.get("risk_on", False):
+        gate_reasons.append("sp500_ema10_below_ema20")
+
+    if gate_reasons:
+        log.warning("Risk gate triggered (%s). Exiting all → cash.", ", ".join(gate_reasons))
         for t in list(holdings):
             pos     = holdings.pop(t)
             sell_px = (scan_by_t[t]["weekly_close"]
@@ -300,7 +342,8 @@ def run_portfolio(state: dict, scan_results: list,
             state["cash"] += (sell_px / pos["entry_price"]) * pos["cost_basis"]
             trade_df = record_trade(
                 trade_df, run_date, t, pos.get("name", t),
-                "SELL", sell_px, pos["entry_price"], pnl_pct, "cash_rule_lt10"
+                "SELL", sell_px, pos["entry_price"], pnl_pct,
+                f"cash_rule_{'+'.join(gate_reasons)}"
             )
             log.info("SELL  %-12s  @ %.4f  (cash rule)", t, sell_px)
 
@@ -389,7 +432,7 @@ def save_scan(results: list, run_date: date):
 
 # ── Dashboard HTML ────────────────────────────────────────────────────────────
 def build_html(state, scan_results, nav_df, trade_log_df,
-               run_date, warnings, q_count):
+               run_date, warnings, q_count, market_trend):
 
     holdings = state["holdings"]
     scan_by_t = {r["ticker"]: r for r in scan_results}
@@ -477,10 +520,20 @@ def build_html(state, scan_results, nav_df, trade_log_df,
         warn_html = (f'<div class="warn-box"><strong>⚠ Data Warnings ({len(warnings)})</strong>'
                      f'<ul>{items}</ul></div>')
 
+    cash_reasons = []
+    if q_count < MIN_STOCKS:
+        cash_reasons.append(f"only {q_count} stocks qualified this week (minimum {MIN_STOCKS} required)")
+    if not market_trend.get("risk_on", False):
+        e10 = market_trend.get("ema10")
+        e20 = market_trend.get("ema20")
+        if e10 is not None and e20 is not None:
+            cash_reasons.append(f"S&amp;P 500 EMA{MARKET_EMA_FAST} ({e10:.2f}) is below EMA{MARKET_EMA_SLOW} ({e20:.2f})")
+        else:
+            cash_reasons.append(f"S&amp;P 500 EMA{MARKET_EMA_FAST} is below EMA{MARKET_EMA_SLOW}")
+
     cash_banner = (
-        f'<div class="cash-banner">⚠ PORTFOLIO IN CASH — only {q_count} stocks qualified '
-        f'this week (minimum {MIN_STOCKS} required). All positions exited.</div>'
-        if in_cash else ""
+        '<div class="cash-banner">⚠ PORTFOLIO IN CASH — ' + " and ".join(cash_reasons) + ". All positions exited.</div>"
+        if in_cash and cash_reasons else ""
     )
 
     ok_count = len([r for r in scan_results if r.get("status") == "ok"])
@@ -564,7 +617,7 @@ footer{{margin-top:60px;padding-top:22px;border-top:1px solid var(--border);
 <div class="hdr">
   <div>
     <h1>Internet Momentum Portfolio</h1>
-    <p>Signal: MACD&gt;0 AND Hist&gt;0 · Weekly · Rank: Hist/Close · Max {MAX_POSITIONS} positions · Hold until signal off</p>
+    <p>Signal: MACD&gt;0 AND Hist&gt;0 · Weekly · Rank: Hist/Close · Max {MAX_POSITIONS} positions · Hold until signal off · S&amp;P500 EMA{MARKET_EMA_FAST}&ge;EMA{MARKET_EMA_SLOW} filter</p>
   </div>
   <div class="hdr-r">Last scan: {run_date}<br>Inception: {inception}<br>Starting NAV: $100,000</div>
 </div>
@@ -628,7 +681,7 @@ footer{{margin-top:60px;padding-top:22px;border-top:1px solid var(--border);
 <footer>
   Internet Momentum Portfolio · MACD&gt;0 AND Hist&gt;0 (EMA {EMA_FAST}/{EMA_SLOW}/{EMA_SIG}, Weekly) ·
   Ranked Hist/Close · Max {MAX_POSITIONS} positions · Min {MIN_STOCKS} to stay invested ·
-  Hold until signal off · $100k NAV · Not financial advice.
+  Hold until signal off · Cash if S&amp;P500 EMA{MARKET_EMA_FAST}&lt;EMA{MARKET_EMA_SLOW} · $100k NAV · Not financial advice.
 </footer></div>
 
 <script>
@@ -695,12 +748,25 @@ def main():
     )
     log.info("Qualifying: %d / %d", q_count, len(scan_results))
 
+    market_trend = get_market_trend()
+    if market_trend.get("status") != "ok":
+        warnings.append(f"{MARKET_TICKER}: {market_trend.get('status')}")
+    log.info(
+        "Market filter (%s): EMA%d=%.4f EMA%d=%.4f -> %s",
+        MARKET_TICKER,
+        MARKET_EMA_FAST,
+        market_trend.get("ema10") if market_trend.get("ema10") is not None else float("nan"),
+        MARKET_EMA_SLOW,
+        market_trend.get("ema20") if market_trend.get("ema20") is not None else float("nan"),
+        "RISK-ON" if market_trend.get("risk_on", False) else "RISK-OFF",
+    )
+
     state        = load_state()
     nav_df       = load_nav_history()
     trade_log_df = load_trade_log()
 
     trade_log_df, q_count = run_portfolio(
-        state, scan_results, scan_by_t, run_date, trade_log_df
+        state, scan_results, scan_by_t, run_date, trade_log_df, market_trend
     )
     state["last_run"] = str(run_date)
 
@@ -717,7 +783,7 @@ def main():
              state["nav"], len(state["holdings"]), MAX_POSITIONS, state["cash"])
 
     html = build_html(state, scan_results, nav_df, trade_log_df,
-                      run_date, warnings, q_count)
+                      run_date, warnings, q_count, market_trend)
     (DOCS / "index.html").write_text(html, encoding="utf-8")
     log.info("Dashboard written → docs/index.html")
     log.info("Done. ✓")
