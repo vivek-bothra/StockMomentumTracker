@@ -1,8 +1,97 @@
 {
-  "holdings": {},
-  "cash": 100000.0,
+  "holdings": {
+    "AMZN": {
+      "entry_price": 263.99,
+      "entry_date": "2026-04-25",
+      "name": "Amazon",
+      "region": "US",
+      "cost_basis": 9090.9091,
+      "rank_score_at_entry": 0.016519
+    },
+    "MTCH": {
+      "entry_price": 36.75,
+      "entry_date": "2026-04-25",
+      "name": "Match Group",
+      "region": "US",
+      "cost_basis": 9090.9091,
+      "rank_score_at_entry": 0.016019
+    },
+    "CARG": {
+      "entry_price": 37.62,
+      "entry_date": "2026-04-25",
+      "name": "CarGurus",
+      "region": "US",
+      "cost_basis": 9090.9091,
+      "rank_score_at_entry": 0.014016
+    },
+    "036570.KS": {
+      "entry_price": 270500.0,
+      "entry_date": "2026-04-25",
+      "name": "NCSoft",
+      "region": "KR",
+      "cost_basis": 9090.9091,
+      "rank_score_at_entry": 0.013953
+    },
+    "ROKU": {
+      "entry_price": 115.22,
+      "entry_date": "2026-04-25",
+      "name": "Roku",
+      "region": "US",
+      "cost_basis": 9090.9091,
+      "rank_score_at_entry": 0.013191
+    },
+    "EBAY": {
+      "entry_price": 97.94,
+      "entry_date": "2026-04-25",
+      "name": "eBay",
+      "region": "US",
+      "cost_basis": 9090.9091,
+      "rank_score_at_entry": 0.009968
+    },
+    "TWLO": {
+      "entry_price": 143.79,
+      "entry_date": "2026-04-25",
+      "name": "Twilio",
+      "region": "US",
+      "cost_basis": 9090.9091,
+      "rank_score_at_entry": 0.00962
+    },
+    "ABNB": {
+      "entry_price": 142.82,
+      "entry_date": "2026-04-25",
+      "name": "Airbnb",
+      "region": "US",
+      "cost_basis": 9090.9091,
+      "rank_score_at_entry": 0.008992
+    },
+    "4385.T": {
+      "entry_price": 3995.0,
+      "entry_date": "2026-04-25",
+      "name": "Mercari",
+      "region": "JP",
+      "cost_basis": 9090.9091,
+      "rank_score_at_entry": 0.006853
+    },
+    "ZM": {
+      "entry_price": 92.03,
+      "entry_date": "2026-04-25",
+      "name": "Zoom",
+      "region": "US",
+      "cost_basis": 9090.9091,
+      "rank_score_at_entry": 0.004334
+    },
+    "NET": {
+      "entry_price": 207.07,
+      "entry_date": "2026-04-25",
+      "name": "Cloudflare",
+      "region": "US",
+      "cost_basis": 9090.9091,
+      "rank_score_at_entry": 0.004257
+    }
+  },
+  "cash": -0.00010000003385357559,
   "nav": 100000.0,
   "inception_date": "2026-02-25",
-  "last_run": "2026-04-18",
-  "in_cash": true
+  "last_run": "2026-04-25",
+  "in_cash": false
 }

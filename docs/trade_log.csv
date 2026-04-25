@@ -1,1 +1,12 @@
 date,ticker,name,action,price,cost_basis,realized_pnl_pct,reason
+2026-04-25,AMZN,Amazon,BUY,263.99,,,rank_1_of_11
+2026-04-25,MTCH,Match Group,BUY,36.75,,,rank_2_of_11
+2026-04-25,CARG,CarGurus,BUY,37.62,,,rank_3_of_11
+2026-04-25,036570.KS,NCSoft,BUY,270500.0,,,rank_4_of_11
+2026-04-25,ROKU,Roku,BUY,115.22,,,rank_5_of_11
+2026-04-25,EBAY,eBay,BUY,97.94,,,rank_6_of_11
+2026-04-25,TWLO,Twilio,BUY,143.79,,,rank_7_of_11
+2026-04-25,ABNB,Airbnb,BUY,142.82,,,rank_8_of_11
+2026-04-25,4385.T,Mercari,BUY,3995.0,,,rank_9_of_11
+2026-04-25,ZM,Zoom,BUY,92.03,,,rank_10_of_11
+2026-04-25,NET,Cloudflare,BUY,207.07,,,rank_11_of_11
