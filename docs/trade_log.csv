@@ -10,3 +10,6 @@ date,ticker,name,action,price,cost_basis,realized_pnl_pct,reason
 2026-04-25,4385.T,Mercari,BUY,3995.0,,,rank_9_of_11
 2026-04-25,ZM,Zoom,BUY,92.03,,,rank_10_of_11
 2026-04-25,NET,Cloudflare,BUY,207.07,,,rank_11_of_11
+2026-05-02,XYZ,Block,BUY,71.81,,,rank_1_of_3
+2026-05-02,ETSY,Etsy,BUY,63.17,,,rank_2_of_3
+2026-05-02,GOOGL,Alphabet,BUY,385.69,,,rank_3_of_3

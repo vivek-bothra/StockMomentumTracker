@@ -87,11 +87,35 @@
       "region": "US",
       "cost_basis": 9090.9091,
       "rank_score_at_entry": 0.004257
+    },
+    "XYZ": {
+      "entry_price": 71.81,
+      "entry_date": "2026-05-02",
+      "name": "Block",
+      "region": "US",
+      "cost_basis": 7528.8229,
+      "rank_score_at_entry": 0.023784
+    },
+    "ETSY": {
+      "entry_price": 63.17,
+      "entry_date": "2026-05-02",
+      "name": "Etsy",
+      "region": "US",
+      "cost_basis": 7528.8229,
+      "rank_score_at_entry": 0.018678
+    },
+    "GOOGL": {
+      "entry_price": 385.69,
+      "entry_date": "2026-05-02",
+      "name": "Alphabet",
+      "region": "US",
+      "cost_basis": 7528.8229,
+      "rank_score_at_entry": 0.007031
     }
   },
-  "cash": -0.00010000003385357559,
-  "nav": 100000.0,
+  "cash": -22586.468800000035,
+  "nav": 105403.52129914358,
   "inception_date": "2026-02-25",
-  "last_run": "2026-04-25",
+  "last_run": "2026-05-02",
   "in_cash": false
 }
