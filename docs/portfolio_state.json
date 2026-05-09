@@ -111,11 +111,35 @@
       "region": "US",
       "cost_basis": 7528.8229,
       "rank_score_at_entry": 0.007031
+    },
+    "JD": {
+      "entry_price": 30.13,
+      "entry_date": "2026-05-09",
+      "name": "JD.com",
+      "region": "US",
+      "cost_basis": 6284.9793,
+      "rank_score_at_entry": 0.018606
+    },
+    "AKAM": {
+      "entry_price": 147.71,
+      "entry_date": "2026-05-09",
+      "name": "Akamai",
+      "region": "US",
+      "cost_basis": 6284.9793,
+      "rank_score_at_entry": 0.013674
+    },
+    "NYKAA.NS": {
+      "entry_price": 272.8,
+      "entry_date": "2026-05-09",
+      "name": "Nykaa",
+      "region": "IN",
+      "cost_basis": 6284.9793,
+      "rank_score_at_entry": 0.002239
     }
   },
-  "cash": -22586.468800000035,
-  "nav": 105403.52129914358,
+  "cash": -41441.406700000036,
+  "nav": 106844.6484227676,
   "inception_date": "2026-02-25",
-  "last_run": "2026-05-02",
+  "last_run": "2026-05-09",
   "in_cash": false
 }

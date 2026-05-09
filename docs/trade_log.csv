@@ -13,3 +13,6 @@ date,ticker,name,action,price,cost_basis,realized_pnl_pct,reason
 2026-05-02,XYZ,Block,BUY,71.81,,,rank_1_of_3
 2026-05-02,ETSY,Etsy,BUY,63.17,,,rank_2_of_3
 2026-05-02,GOOGL,Alphabet,BUY,385.69,,,rank_3_of_3
+2026-05-09,JD,JD.com,BUY,30.13,,,rank_1_of_3
+2026-05-09,AKAM,Akamai,BUY,147.71,,,rank_2_of_3
+2026-05-09,NYKAA.NS,Nykaa,BUY,272.8,,,rank_3_of_3
