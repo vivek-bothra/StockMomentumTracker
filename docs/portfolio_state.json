@@ -16,14 +16,6 @@
       "cost_basis": 9090.9091,
       "rank_score_at_entry": 0.016019
     },
-    "CARG": {
-      "entry_price": 37.62,
-      "entry_date": "2026-04-25",
-      "name": "CarGurus",
-      "region": "US",
-      "cost_basis": 9090.9091,
-      "rank_score_at_entry": 0.014016
-    },
     "036570.KS": {
       "entry_price": 270500.0,
       "entry_date": "2026-04-25",
@@ -135,11 +127,19 @@
       "region": "IN",
       "cost_basis": 6284.9793,
       "rank_score_at_entry": 0.002239
+    },
+    "BIDU": {
+      "entry_price": 135.33,
+      "entry_date": "2026-05-16",
+      "name": "Baidu",
+      "region": "US",
+      "cost_basis": 6088.2902,
+      "rank_score_at_entry": 0.00167
     }
   },
-  "cash": -41441.406700000036,
-  "nav": 106844.6484227676,
+  "cash": -40601.56388838388,
+  "nav": 103500.9326064333,
   "inception_date": "2026-02-25",
-  "last_run": "2026-05-09",
+  "last_run": "2026-05-16",
   "in_cash": false
 }
