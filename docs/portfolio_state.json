@@ -135,11 +135,27 @@
       "region": "US",
       "cost_basis": 6088.2902,
       "rank_score_at_entry": 0.00167
+    },
+    "DHER.DE": {
+      "entry_price": 32.97,
+      "entry_date": "2026-05-23",
+      "name": "Delivery Hero",
+      "region": "EU",
+      "cost_basis": 5471.3259,
+      "rank_score_at_entry": 0.044829
+    },
+    "TRVG": {
+      "entry_price": 3.29,
+      "entry_date": "2026-05-23",
+      "name": "Trivago",
+      "region": "US",
+      "cost_basis": 5471.3259,
+      "rank_score_at_entry": 0.02152
     }
   },
-  "cash": -40601.56388838388,
-  "nav": 103500.9326064333,
+  "cash": -51544.215688383876,
+  "nav": 103955.19217651483,
   "inception_date": "2026-02-25",
-  "last_run": "2026-05-16",
+  "last_run": "2026-05-23",
   "in_cash": false
 }

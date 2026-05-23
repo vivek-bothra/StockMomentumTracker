@@ -18,3 +18,5 @@ date,ticker,name,action,price,cost_basis,realized_pnl_pct,reason
 2026-05-09,NYKAA.NS,Nykaa,BUY,272.8,,,rank_3_of_3
 2026-05-16,CARG,CarGurus,SELL,28.67,37.62,-23.79,signal_off
 2026-05-16,BIDU,Baidu,BUY,135.33,,,rank_1_of_1
+2026-05-23,DHER.DE,Delivery Hero,BUY,32.97,,,rank_1_of_2
+2026-05-23,TRVG,Trivago,BUY,3.29,,,rank_2_of_2
