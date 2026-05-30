@@ -20,3 +20,4 @@ date,ticker,name,action,price,cost_basis,realized_pnl_pct,reason
 2026-05-16,BIDU,Baidu,BUY,135.33,,,rank_1_of_1
 2026-05-23,DHER.DE,Delivery Hero,BUY,32.97,,,rank_1_of_2
 2026-05-23,TRVG,Trivago,BUY,3.29,,,rank_2_of_2
+2026-05-30,ALE.WA,Allegro,BUY,34.765,,,rank_1_of_2

@@ -151,11 +151,19 @@
       "region": "US",
       "cost_basis": 5471.3259,
       "rank_score_at_entry": 0.02152
+    },
+    "ALE.WA": {
+      "entry_price": 34.765,
+      "entry_date": "2026-05-30",
+      "name": "Allegro",
+      "region": "PL",
+      "cost_basis": 5394.9112,
+      "rank_score_at_entry": 0.02558
     }
   },
-  "cash": -51544.215688383876,
-  "nav": 103955.19217651483,
+  "cash": -56939.12688838388,
+  "nav": 107898.22388997755,
   "inception_date": "2026-02-25",
-  "last_run": "2026-05-23",
+  "last_run": "2026-05-30",
   "in_cash": false
 }
