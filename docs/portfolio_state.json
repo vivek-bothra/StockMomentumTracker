@@ -56,14 +56,6 @@
       "cost_basis": 9090.9091,
       "rank_score_at_entry": 0.008992
     },
-    "4385.T": {
-      "entry_price": 3995.0,
-      "entry_date": "2026-04-25",
-      "name": "Mercari",
-      "region": "JP",
-      "cost_basis": 9090.9091,
-      "rank_score_at_entry": 0.006853
-    },
     "ZM": {
       "entry_price": 92.03,
       "entry_date": "2026-04-25",
@@ -120,22 +112,6 @@
       "cost_basis": 6284.9793,
       "rank_score_at_entry": 0.013674
     },
-    "NYKAA.NS": {
-      "entry_price": 272.8,
-      "entry_date": "2026-05-09",
-      "name": "Nykaa",
-      "region": "IN",
-      "cost_basis": 6284.9793,
-      "rank_score_at_entry": 0.002239
-    },
-    "BIDU": {
-      "entry_price": 135.33,
-      "entry_date": "2026-05-16",
-      "name": "Baidu",
-      "region": "US",
-      "cost_basis": 6088.2902,
-      "rank_score_at_entry": 0.00167
-    },
     "DHER.DE": {
       "entry_price": 32.97,
       "entry_date": "2026-05-23",
@@ -159,11 +135,35 @@
       "region": "PL",
       "cost_basis": 5394.9112,
       "rank_score_at_entry": 0.02558
+    },
+    "GRPN": {
+      "entry_price": 16.46,
+      "entry_date": "2026-06-06",
+      "name": "Groupon",
+      "region": "US",
+      "cost_basis": 5351.8338,
+      "rank_score_at_entry": 0.061075
+    },
+    "TDOC": {
+      "entry_price": 7.05,
+      "entry_date": "2026-06-06",
+      "name": "Teladoc",
+      "region": "US",
+      "cost_basis": 5351.8338,
+      "rank_score_at_entry": 0.041518
+    },
+    "APP": {
+      "entry_price": 557.2,
+      "entry_date": "2026-06-06",
+      "name": "Applovin",
+      "region": "US",
+      "cost_basis": 5351.8338,
+      "rank_score_at_entry": 0.02914
     }
   },
-  "cash": -56939.12688838388,
-  "nav": 107898.22388997755,
+  "cash": -52662.69350430107,
+  "nav": 107036.6754321722,
   "inception_date": "2026-02-25",
-  "last_run": "2026-05-30",
+  "last_run": "2026-06-06",
   "in_cash": false
 }

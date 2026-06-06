@@ -21,3 +21,9 @@ date,ticker,name,action,price,cost_basis,realized_pnl_pct,reason
 2026-05-23,DHER.DE,Delivery Hero,BUY,32.97,,,rank_1_of_2
 2026-05-23,TRVG,Trivago,BUY,3.29,,,rank_2_of_2
 2026-05-30,ALE.WA,Allegro,BUY,34.765,,,rank_1_of_2
+2026-06-06,4385.T,Mercari,SELL,3874.0,3995.0,-3.03,signal_off
+2026-06-06,NYKAA.NS,Nykaa,SELL,262.3,272.8,-3.85,signal_off
+2026-06-06,BIDU,Baidu,SELL,121.66,135.33,-10.1,signal_off
+2026-06-06,GRPN,Groupon,BUY,16.46,,,rank_1_of_4
+2026-06-06,TDOC,Teladoc,BUY,7.05,,,rank_2_of_4
+2026-06-06,APP,Applovin,BUY,557.2,,,rank_3_of_4
