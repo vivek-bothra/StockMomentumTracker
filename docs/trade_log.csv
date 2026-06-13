@@ -27,3 +27,5 @@ date,ticker,name,action,price,cost_basis,realized_pnl_pct,reason
 2026-06-06,GRPN,Groupon,BUY,16.46,,,rank_1_of_4
 2026-06-06,TDOC,Teladoc,BUY,7.05,,,rank_2_of_4
 2026-06-06,APP,Applovin,BUY,557.2,,,rank_3_of_4
+2026-06-13,ABNB,Airbnb,SELL,132.28,142.82,-7.38,signal_off
+2026-06-13,CART,Instacart,BUY,41.245,,,rank_1_of_2
