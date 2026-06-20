@@ -29,3 +29,8 @@ date,ticker,name,action,price,cost_basis,realized_pnl_pct,reason
 2026-06-06,APP,Applovin,BUY,557.2,,,rank_3_of_4
 2026-06-13,ABNB,Airbnb,SELL,132.28,142.82,-7.38,signal_off
 2026-06-13,CART,Instacart,BUY,41.245,,,rank_1_of_2
+2026-06-20,ZM,Zoom,SELL,86.36,92.03,-6.16,signal_off
+2026-06-20,GOOGL,Alphabet,SELL,368.03,385.69,-4.58,signal_off
+2026-06-20,JD,JD.com,SELL,27.57,30.13,-8.5,signal_off
+2026-06-20,NYKAA.NS,Nykaa,BUY,302.3,,,rank_1_of_2
+2026-06-20,ABNB,Airbnb,BUY,142.41,,,rank_2_of_2

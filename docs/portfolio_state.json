@@ -48,14 +48,6 @@
       "cost_basis": 9090.9091,
       "rank_score_at_entry": 0.00962
     },
-    "ZM": {
-      "entry_price": 92.03,
-      "entry_date": "2026-04-25",
-      "name": "Zoom",
-      "region": "US",
-      "cost_basis": 9090.9091,
-      "rank_score_at_entry": 0.004334
-    },
     "NET": {
       "entry_price": 207.07,
       "entry_date": "2026-04-25",
@@ -79,22 +71,6 @@
       "region": "US",
       "cost_basis": 7528.8229,
       "rank_score_at_entry": 0.018678
-    },
-    "GOOGL": {
-      "entry_price": 385.69,
-      "entry_date": "2026-05-02",
-      "name": "Alphabet",
-      "region": "US",
-      "cost_basis": 7528.8229,
-      "rank_score_at_entry": 0.007031
-    },
-    "JD": {
-      "entry_price": 30.13,
-      "entry_date": "2026-05-09",
-      "name": "JD.com",
-      "region": "US",
-      "cost_basis": 6284.9793,
-      "rank_score_at_entry": 0.018606
     },
     "AKAM": {
       "entry_price": 147.71,
@@ -159,11 +135,27 @@
       "region": "US",
       "cost_basis": 5157.7055,
       "rank_score_at_entry": 0.009133
+    },
+    "NYKAA.NS": {
+      "entry_price": 302.3,
+      "entry_date": "2026-06-20",
+      "name": "Nykaa",
+      "region": "IN",
+      "cost_basis": 5499.7308,
+      "rank_score_at_entry": 0.007334
+    },
+    "ABNB": {
+      "entry_price": 142.41,
+      "entry_date": "2026-06-20",
+      "name": "Airbnb",
+      "region": "US",
+      "cost_basis": 5499.7308,
+      "rank_score_at_entry": 0.002186
     }
   },
-  "cash": -49400.39161214311,
-  "nav": 103154.10961243144,
+  "cash": -38933.97042445892,
+  "nav": 104494.88513886272,
   "inception_date": "2026-02-25",
-  "last_run": "2026-06-13",
+  "last_run": "2026-06-20",
   "in_cash": false
 }
