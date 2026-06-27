@@ -34,3 +34,22 @@ date,ticker,name,action,price,cost_basis,realized_pnl_pct,reason
 2026-06-20,JD,JD.com,SELL,27.57,30.13,-8.5,signal_off
 2026-06-20,NYKAA.NS,Nykaa,BUY,302.3,,,rank_1_of_2
 2026-06-20,ABNB,Airbnb,BUY,142.41,,,rank_2_of_2
+2026-06-27,AMZN,Amazon,SELL,232.69,263.99,-11.86,signal_off
+2026-06-27,036570.KS,NCSoft,SELL,238000.0,270500.0,-12.01,signal_off
+2026-06-27,AKAM,Akamai,SELL,113.29,147.71,-23.3,signal_off
+2026-06-27,APP,Applovin,SELL,477.08,557.2,-14.38,signal_off
+2026-06-27,MTCH,Match Group,SELL,37.17,36.75,1.14,cash_rule_sp500_ema10_below_ema20
+2026-06-27,ROKU,Roku,SELL,135.4,115.22,17.51,cash_rule_sp500_ema10_below_ema20
+2026-06-27,EBAY,eBay,SELL,107.87,97.94,10.14,cash_rule_sp500_ema10_below_ema20
+2026-06-27,TWLO,Twilio,SELL,191.57,143.79,33.23,cash_rule_sp500_ema10_below_ema20
+2026-06-27,NET,Cloudflare,SELL,237.24,207.07,14.57,cash_rule_sp500_ema10_below_ema20
+2026-06-27,XYZ,Block,SELL,77.82,71.81,8.37,cash_rule_sp500_ema10_below_ema20
+2026-06-27,ETSY,Etsy,SELL,78.04,63.17,23.54,cash_rule_sp500_ema10_below_ema20
+2026-06-27,DHER.DE,Delivery Hero,SELL,35.81,32.97,8.61,cash_rule_sp500_ema10_below_ema20
+2026-06-27,TRVG,Trivago,SELL,5.31,3.29,61.4,cash_rule_sp500_ema10_below_ema20
+2026-06-27,ALE.WA,Allegro,SELL,37.195,34.765,6.99,cash_rule_sp500_ema10_below_ema20
+2026-06-27,GRPN,Groupon,SELL,22.6,16.46,37.3,cash_rule_sp500_ema10_below_ema20
+2026-06-27,TDOC,Teladoc,SELL,8.39,7.05,19.01,cash_rule_sp500_ema10_below_ema20
+2026-06-27,CART,Instacart,SELL,47.46,41.245,15.07,cash_rule_sp500_ema10_below_ema20
+2026-06-27,NYKAA.NS,Nykaa,SELL,301.35,302.3,-0.31,cash_rule_sp500_ema10_below_ema20
+2026-06-27,ABNB,Airbnb,SELL,145.56,142.41,2.21,cash_rule_sp500_ema10_below_ema20
