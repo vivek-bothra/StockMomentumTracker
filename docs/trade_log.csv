@@ -53,3 +53,23 @@ date,ticker,name,action,price,cost_basis,realized_pnl_pct,reason
 2026-06-27,CART,Instacart,SELL,47.46,41.245,15.07,cash_rule_sp500_ema10_below_ema20
 2026-06-27,NYKAA.NS,Nykaa,SELL,301.35,302.3,-0.31,cash_rule_sp500_ema10_below_ema20
 2026-06-27,ABNB,Airbnb,SELL,145.56,142.41,2.21,cash_rule_sp500_ema10_below_ema20
+2026-07-04,TRVG,Trivago,BUY,5.41,,,rank_1_of_23
+2026-07-04,GRPN,Groupon,BUY,25.58,,,rank_2_of_23
+2026-07-04,DHER.DE,Delivery Hero,BUY,36.92,,,rank_3_of_23
+2026-07-04,TDOC,Teladoc,BUY,9.2,,,rank_4_of_23
+2026-07-04,HOOD,Robinhood,BUY,112.73,,,rank_5_of_23
+2026-07-04,W,Wayfair,BUY,94.5,,,rank_6_of_23
+2026-07-04,ALE.WA,Allegro,BUY,38.44,,,rank_7_of_23
+2026-07-04,ASC.L,ASOS,BUY,318.0,,,rank_8_of_23
+2026-07-04,ETSY,Etsy,BUY,76.97,,,rank_9_of_23
+2026-07-04,ZAL.DE,Zalando,BUY,27.03,,,rank_10_of_23
+2026-07-04,CART,Instacart,BUY,45.78,,,rank_11_of_23
+2026-07-04,TTWO,Take-Two Interactive,BUY,254.99,,,rank_12_of_23
+2026-07-04,ROKU,Roku,BUY,142.43,,,rank_13_of_23
+2026-07-04,XYZ,Block,BUY,78.83,,,rank_14_of_23
+2026-07-04,TWLO,Twilio,BUY,209.31,,,rank_15_of_23
+2026-07-04,NET,Cloudflare,BUY,242.41,,,rank_16_of_23
+2026-07-04,DBX,Dropbox,BUY,28.56,,,rank_17_of_23
+2026-07-04,NYKAA.NS,Nykaa,BUY,310.3,,,rank_18_of_23
+2026-07-04,APP,Applovin,BUY,527.06,,,rank_19_of_23
+2026-07-04,EXPE,Expedia,BUY,268.69,,,rank_20_of_23
