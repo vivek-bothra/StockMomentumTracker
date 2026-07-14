@@ -19,7 +19,7 @@ Portfolio rules:
 import json
 import logging
 import time
-from datetime import date
+from datetime import date, timedelta
 from pathlib import Path
 
 import pandas as pd
@@ -51,6 +51,7 @@ MAX_POSITIONS = 20
 MIN_STOCKS    = 10
 EMA_FAST, EMA_SLOW, EMA_SIG = 12, 26, 9
 MARKET_TICKER = "^GSPC"
+BENCHMARK_START_DATE = date(2026, 4, 25)
 MARKET_EMA_FAST, MARKET_EMA_SLOW = 10, 20
 
 # ── HTTP session ──────────────────────────────────────────────────────────────
@@ -254,6 +255,50 @@ def append_nav(nav_df, run_date, nav, n_held, in_cash, q_count) -> pd.DataFrame:
     }])
     return pd.concat([nav_df, row], ignore_index=True)
 
+
+# ── Benchmark ─────────────────────────────────────────────────────────────────
+def build_benchmark_history(nav_df: pd.DataFrame, run_date: date) -> pd.DataFrame:
+    """Build a $100k-normalized S&P 500 benchmark aligned to NAV dates."""
+    cols = ["date", "benchmark_nav", "benchmark_return_pct"]
+    if nav_df.empty:
+        return pd.DataFrame(columns=cols)
+
+    nav_dates = pd.to_datetime(nav_df["date"]).dt.date
+    compare_dates = sorted(d for d in nav_dates if d >= BENCHMARK_START_DATE)
+    if not compare_dates:
+        return pd.DataFrame(columns=cols)
+
+    try:
+        hist = yf.Ticker(MARKET_TICKER, session=SESSION).history(
+            start=BENCHMARK_START_DATE - timedelta(days=7),
+            end=run_date + timedelta(days=1),
+            auto_adjust=True,
+        )
+        if hist.empty or "Close" not in hist:
+            raise ValueError("empty benchmark history")
+
+        closes = hist["Close"].resample("W-SAT").last().dropna()
+        base_candidates = closes[closes.index.date >= BENCHMARK_START_DATE]
+        if base_candidates.empty:
+            raise ValueError("no benchmark close on or after comparison start")
+
+        base_close = float(base_candidates.iloc[0])
+        rows = []
+        for d in compare_dates:
+            available = closes[closes.index.date <= d]
+            if available.empty:
+                continue
+            nav_value = STARTING_NAV * float(available.iloc[-1]) / base_close
+            rows.append({
+                "date": str(d),
+                "benchmark_nav": round(nav_value, 2),
+                "benchmark_return_pct": round((nav_value / STARTING_NAV - 1) * 100, 4),
+            })
+        return pd.DataFrame(rows, columns=cols)
+    except Exception as e:
+        log.warning("Benchmark unavailable for %s: %s", MARKET_TICKER, e)
+        return pd.DataFrame(columns=cols)
+
 # ── Trade log ─────────────────────────────────────────────────────────────────
 def load_trade_log() -> pd.DataFrame:
     if TRADE_LOG.exists():
@@ -431,7 +476,7 @@ def save_scan(results: list, run_date: date):
     log.info("Scan saved → %s", path)
 
 # ── Dashboard HTML ────────────────────────────────────────────────────────────
-def build_html(state, scan_results, nav_df, trade_log_df,
+def build_html(state, scan_results, nav_df, trade_log_df, benchmark_df,
                run_date, warnings, q_count, market_trend):
 
     holdings = state["holdings"]
@@ -439,9 +484,31 @@ def build_html(state, scan_results, nav_df, trade_log_df,
     nav          = state["nav"]
     total_return = (nav / STARTING_NAV - 1) * 100
     inception    = state.get("inception_date", "—")
+    try:
+        inception_dt = pd.to_datetime(inception).date()
+        days_since_inception = max((run_date - inception_dt).days, 1)
+        xirr = ((nav / STARTING_NAV) ** (365 / days_since_inception) - 1) * 100
+        xirr_display = f"{xirr:+.2f}%"
+        xirr_color = "green" if xirr >= 0 else "red"
+    except Exception:
+        xirr_display = "—"
+        xirr_color = "blue"
     in_cash      = state.get("in_cash", False)
     latest_wret  = (f'{float(nav_df["weekly_return_pct"].iloc[-1]):+.2f}%'
                     if len(nav_df) else "—")
+    if len(benchmark_df):
+        benchmark_return = float(benchmark_df["benchmark_return_pct"].iloc[-1])
+        benchmark_display = f"{benchmark_return:+.2f}%"
+        benchmark_color = "green" if benchmark_return >= 0 else "red"
+        comparable_nav = nav_df[pd.to_datetime(nav_df["date"]).dt.date >= BENCHMARK_START_DATE]
+        base_nav = float(comparable_nav["nav"].iloc[0]) if len(comparable_nav) else STARTING_NAV
+        portfolio_compare_return = (nav / base_nav - 1) * 100 if base_nav else total_return
+        excess_return = portfolio_compare_return - benchmark_return
+        benchmark_sub = f"portfolio {'+' if excess_return >= 0 else ''}{excess_return:.2f} pts vs S&amp;P 500"
+    else:
+        benchmark_display = "—"
+        benchmark_color = "blue"
+        benchmark_sub = f"from {BENCHMARK_START_DATE:%Y-%m-%d}"
 
     # Holdings rows
     holding_rows = []
@@ -507,9 +574,19 @@ def build_html(state, scan_results, nav_df, trade_log_df,
           <td class="mono" style="color:var(--muted);font-size:11px">{row.get('reason','')}</td>
         </tr>""")
 
+    benchmark_by_date = {
+        row["date"]: float(row["benchmark_nav"])
+        for _, row in benchmark_df.iterrows()
+    }
     nav_json = json.dumps({
         "dates":    list(nav_df["date"]),
         "values":   [float(v) for v in nav_df["nav"]],
+        "benchmarkValues": [benchmark_by_date.get(d) for d in nav_df["date"]],
+        "benchmarkReturns": [
+            (benchmark_by_date.get(d) / STARTING_NAV - 1) * 100
+            if benchmark_by_date.get(d) is not None else None
+            for d in nav_df["date"]
+        ],
         "returns":  [float(v) for v in nav_df["weekly_return_pct"]],
         "holdings": [int(v)   for v in nav_df["num_holdings"]],
     })
@@ -630,6 +707,12 @@ footer{{margin-top:60px;padding-top:22px;border-top:1px solid var(--border);
   <div class="card"><div class="lbl">Total Return</div>
     <div class="val {'green' if total_return>=0 else 'red'}">{total_return:+.2f}%</div>
     <div class="sub">since inception</div></div>
+  <div class="card"><div class="lbl">XIRR</div>
+    <div class="val {xirr_color}">{xirr_display}</div>
+    <div class="sub">annualized return</div></div>
+  <div class="card"><div class="lbl">S&amp;P 500</div>
+    <div class="val {benchmark_color}">{benchmark_display}</div>
+    <div class="sub">{benchmark_sub}</div></div>
   <div class="card"><div class="lbl">This Week</div>
     <div class="val {'green' if latest_wret and latest_wret[0]=='+' else 'red'}">{latest_wret}</div>
     <div class="sub">weekly return</div></div>
@@ -644,7 +727,7 @@ footer{{margin-top:60px;padding-top:22px;border-top:1px solid var(--border);
 </div>
 
 <div class="section">
-  <div class="sec-hdr"><h2>NAV History</h2><span class="tag">$100k starting capital</span></div>
+  <div class="sec-hdr"><h2>NAV History</h2><span class="tag">portfolio vs S&amp;P 500 from {BENCHMARK_START_DATE:%Y-%m-%d}</span></div>
   <div class="chart-box"><canvas id="navChart" height="75"></canvas></div>
 </div>
 
@@ -690,19 +773,27 @@ const ctx=document.getElementById('navChart').getContext('2d');
 const g=ctx.createLinearGradient(0,0,0,280);
 g.addColorStop(0,'rgba(74,222,128,.22)');g.addColorStop(1,'rgba(74,222,128,0)');
 new Chart(ctx,{{type:'line',
-  data:{{labels:D.dates,datasets:[{{label:'NAV',data:D.values,
+  data:{{labels:D.dates,datasets:[{{label:'Portfolio NAV',data:D.values,
     borderColor:'#4ade80',backgroundColor:g,borderWidth:2,
     pointRadius:D.dates.length>26?0:4,pointHoverRadius:6,
-    pointBackgroundColor:'#4ade80',tension:.35,fill:true}}]}},
+    pointBackgroundColor:'#4ade80',tension:.35,fill:true}},
+    {{label:'S&P 500',data:D.benchmarkValues,
+    borderColor:'#60a5fa',backgroundColor:'rgba(96,165,250,0)',borderWidth:2,
+    borderDash:[6,5],spanGaps:false,pointRadius:D.dates.length>26?0:3,pointHoverRadius:5,
+    pointBackgroundColor:'#60a5fa',tension:.35,fill:false}}]}},
   options:{{responsive:true,interaction:{{mode:'index',intersect:false}},
-    plugins:{{legend:{{display:false}},tooltip:{{
+    plugins:{{legend:{{display:true,labels:{{color:'#dde1ed',font:{{family:'IBM Plex Mono',size:11}}}}}},tooltip:{{
       backgroundColor:'#0f1018',borderColor:'#23242f',borderWidth:1,
       titleColor:'#4ade80',bodyColor:'#dde1ed',
       callbacks:{{
-        label:c=>' NAV: $'+c.parsed.y.toLocaleString(undefined,{{maximumFractionDigits:0}}),
+        label:c=>' '+c.dataset.label+': $'+c.parsed.y.toLocaleString(undefined,{{maximumFractionDigits:0}}),
         afterLabel:c=>{{
-          const r=D.returns[c.dataIndex],h=D.holdings[c.dataIndex];
-          return[' Week: '+(r>=0?'+':'')+r.toFixed(2)+'%',' Holdings: '+h];
+          if(c.datasetIndex===0){{
+            const r=D.returns[c.dataIndex],h=D.holdings[c.dataIndex];
+            return[' Week: '+(r>=0?'+':'')+r.toFixed(2)+'%',' Holdings: '+h];
+          }}
+          const br=D.benchmarkReturns[c.dataIndex];
+          return br===null?'':' S&P 500 return: '+(br>=0?'+':'')+br.toFixed(2)+'%';
         }}
       }}
     }}}},
@@ -782,7 +873,9 @@ def main():
     log.info("NAV: $%.2f  |  Holdings: %d/%d  |  Cash: $%.2f",
              state["nav"], len(state["holdings"]), MAX_POSITIONS, state["cash"])
 
-    html = build_html(state, scan_results, nav_df, trade_log_df,
+    benchmark_df = build_benchmark_history(nav_df, run_date)
+
+    html = build_html(state, scan_results, nav_df, trade_log_df, benchmark_df,
                       run_date, warnings, q_count, market_trend)
     (DOCS / "index.html").write_text(html, encoding="utf-8")
     log.info("Dashboard written → docs/index.html")
