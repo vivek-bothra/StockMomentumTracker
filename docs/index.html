@@ -81,14 +81,18 @@ footer{margin-top:60px;padding-top:22px;border-top:1px solid var(--border);
   <div class="hdr-r">Last scan: 2026-07-11<br>Inception: 2026-02-25<br>Starting NAV: $100,000</div>
 </div>
 
-<div class="warn-box"><strong>⚠ Data Warnings (1)</strong><ul><li>069080.KS: insufficient_history</li></ul></div>
-
 <div class="stat-grid">
   <div class="card"><div class="lbl">Portfolio NAV</div>
     <div class="val blue">$108,765</div><div class="sub">from $100,000</div></div>
   <div class="card"><div class="lbl">Total Return</div>
     <div class="val green">+8.77%</div>
     <div class="sub">since inception</div></div>
+  <div class="card"><div class="lbl">XIRR</div>
+    <div class="val green">+23.78%</div>
+    <div class="sub">annualized return</div></div>
+  <div class="card"><div class="lbl">S&amp;P 500</div>
+    <div class="val green">+5.20%</div>
+    <div class="sub">portfolio +3.57 pts vs S&amp;P 500</div></div>
   <div class="card"><div class="lbl">This Week</div>
     <div class="val green">+1.03%</div>
     <div class="sub">weekly return</div></div>
@@ -103,7 +107,7 @@ footer{margin-top:60px;padding-top:22px;border-top:1px solid var(--border);
 </div>
 
 <div class="section">
-  <div class="sec-hdr"><h2>NAV History</h2><span class="tag">$100k starting capital</span></div>
+  <div class="sec-hdr"><h2>NAV History</h2><span class="tag">portfolio vs S&amp;P 500 from 2026-04-25</span></div>
   <div class="chart-box"><canvas id="navChart" height="75"></canvas></div>
 </div>
 
@@ -1948,24 +1952,32 @@ footer{margin-top:60px;padding-top:22px;border-top:1px solid var(--border);
 </footer></div>
 
 <script>
-const D={"dates": ["2026-02-25", "2026-02-25", "2026-02-28", "2026-03-07", "2026-03-14", "2026-03-21", "2026-03-28", "2026-04-04", "2026-04-11", "2026-04-18", "2026-04-25", "2026-05-02", "2026-05-09", "2026-05-16", "2026-05-23", "2026-05-30", "2026-06-06", "2026-06-13", "2026-06-20", "2026-06-27", "2026-07-04", "2026-07-11"], "values": [100000.0, 100000.0, 100000.0, 100000.0, 100000.0, 100000.0, 100000.0, 100000.0, 100000.0, 100000.0, 100000.0, 105403.52, 106844.65, 103500.93, 103955.19, 107898.22, 107036.68, 103154.11, 104494.89, 107659.42, 107659.42, 108765.41], "returns": [0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 5.4035, 1.3672, -3.1295, 0.4389, 3.793, -0.7985, -3.6273, 1.2998, 3.0284, 0.0, 1.0273], "holdings": [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 11, 14, 17, 17, 19, 20, 20, 20, 19, 0, 20, 20]};
+const D={"dates": ["2026-02-25", "2026-02-25", "2026-02-28", "2026-03-07", "2026-03-14", "2026-03-21", "2026-03-28", "2026-04-04", "2026-04-11", "2026-04-18", "2026-04-25", "2026-05-02", "2026-05-09", "2026-05-16", "2026-05-23", "2026-05-30", "2026-06-06", "2026-06-13", "2026-06-20", "2026-06-27", "2026-07-04", "2026-07-11"], "values": [100000.0, 100000.0, 100000.0, 100000.0, 100000.0, 100000.0, 100000.0, 100000.0, 100000.0, 100000.0, 100000.0, 105403.52, 106844.65, 103500.93, 103955.19, 107898.22, 107036.68, 103154.11, 104494.89, 107659.42, 107659.42, 108765.41], "returns": [0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 5.4035, 1.3672, -3.1295, 0.4389, 3.793, -0.7985, -3.6273, 1.2998, 3.0284, 0.0, 1.0273], "holdings": [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 11, 14, 17, 17, 19, 20, 20, 20, 19, 0, 20, 20], "benchmarkValues": [null, null, null, null, null, null, null, null, null, null, 100000.0, 101000.0, 100500.0, 99500.0, 101200.0, 102000.0, 101700.0, 103000.0, 102400.0, 104100.0, 104600.0, 105200.0], "benchmarkReturns": [null, null, null, null, null, null, null, null, null, null, 0.0, 1.0000000000000009, 0.49999999999998934, -0.5000000000000004, 1.200000000000001, 2.0000000000000018, 1.6999999999999904, 3.0000000000000027, 2.400000000000002, 4.0999999999999925, 4.600000000000004, 5.200000000000005]};
 const ctx=document.getElementById('navChart').getContext('2d');
 const g=ctx.createLinearGradient(0,0,0,280);
 g.addColorStop(0,'rgba(74,222,128,.22)');g.addColorStop(1,'rgba(74,222,128,0)');
 new Chart(ctx,{type:'line',
-  data:{labels:D.dates,datasets:[{label:'NAV',data:D.values,
+  data:{labels:D.dates,datasets:[{label:'Portfolio NAV',data:D.values,
     borderColor:'#4ade80',backgroundColor:g,borderWidth:2,
     pointRadius:D.dates.length>26?0:4,pointHoverRadius:6,
-    pointBackgroundColor:'#4ade80',tension:.35,fill:true}]},
+    pointBackgroundColor:'#4ade80',tension:.35,fill:true},
+    {label:'S&P 500',data:D.benchmarkValues,
+    borderColor:'#60a5fa',backgroundColor:'rgba(96,165,250,0)',borderWidth:2,
+    borderDash:[6,5],spanGaps:false,pointRadius:D.dates.length>26?0:3,pointHoverRadius:5,
+    pointBackgroundColor:'#60a5fa',tension:.35,fill:false}]},
   options:{responsive:true,interaction:{mode:'index',intersect:false},
-    plugins:{legend:{display:false},tooltip:{
+    plugins:{legend:{display:true,labels:{color:'#dde1ed',font:{family:'IBM Plex Mono',size:11}}},tooltip:{
       backgroundColor:'#0f1018',borderColor:'#23242f',borderWidth:1,
       titleColor:'#4ade80',bodyColor:'#dde1ed',
       callbacks:{
-        label:c=>' NAV: $'+c.parsed.y.toLocaleString(undefined,{maximumFractionDigits:0}),
+        label:c=>' '+c.dataset.label+': $'+c.parsed.y.toLocaleString(undefined,{maximumFractionDigits:0}),
         afterLabel:c=>{
-          const r=D.returns[c.dataIndex],h=D.holdings[c.dataIndex];
-          return[' Week: '+(r>=0?'+':'')+r.toFixed(2)+'%',' Holdings: '+h];
+          if(c.datasetIndex===0){
+            const r=D.returns[c.dataIndex],h=D.holdings[c.dataIndex];
+            return[' Week: '+(r>=0?'+':'')+r.toFixed(2)+'%',' Holdings: '+h];
+          }
+          const br=D.benchmarkReturns[c.dataIndex];
+          return br===null?'':' S&P 500 return: '+(br>=0?'+':'')+br.toFixed(2)+'%';
         }
       }
     }},
