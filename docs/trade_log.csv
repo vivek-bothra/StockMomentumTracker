@@ -73,3 +73,5 @@ date,ticker,name,action,price,cost_basis,realized_pnl_pct,reason
 2026-07-04,NYKAA.NS,Nykaa,BUY,310.3,,,rank_18_of_23
 2026-07-04,APP,Applovin,BUY,527.06,,,rank_19_of_23
 2026-07-04,EXPE,Expedia,BUY,268.69,,,rank_20_of_23
+2026-07-18,APP,Applovin,SELL,424.54,527.06,-19.45,signal_off
+2026-07-18,TRIP,TripAdvisor,BUY,14.58,,,rank_1_of_9

@@ -144,14 +144,6 @@
       "cost_basis": 5382.9712,
       "rank_score_at_entry": 0.013378
     },
-    "APP": {
-      "entry_price": 527.06,
-      "entry_date": "2026-07-04",
-      "name": "Applovin",
-      "region": "US",
-      "cost_basis": 5382.9712,
-      "rank_score_at_entry": 0.012626
-    },
     "EXPE": {
       "entry_price": 268.69,
       "entry_date": "2026-07-04",
@@ -159,11 +151,19 @@
       "region": "US",
       "cost_basis": 5382.9712,
       "rank_score_at_entry": 0.010863
+    },
+    "TRIP": {
+      "entry_price": 14.58,
+      "entry_date": "2026-07-18",
+      "name": "TripAdvisor",
+      "region": "US",
+      "cost_basis": 5503.6464,
+      "rank_score_at_entry": 0.040322
     }
   },
-  "cash": 6.757868686690927e-05,
-  "nav": 108765.4056824836,
+  "cash": -1167.7327870033332,
+  "nav": 110072.92807960071,
   "inception_date": "2026-02-25",
-  "last_run": "2026-07-11",
+  "last_run": "2026-07-18",
   "in_cash": false
 }
