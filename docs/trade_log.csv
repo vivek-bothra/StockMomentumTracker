@@ -75,3 +75,23 @@ date,ticker,name,action,price,cost_basis,realized_pnl_pct,reason
 2026-07-04,EXPE,Expedia,BUY,268.69,,,rank_20_of_23
 2026-07-18,APP,Applovin,SELL,424.54,527.06,-19.45,signal_off
 2026-07-18,TRIP,TripAdvisor,BUY,14.58,,,rank_1_of_9
+2026-07-25,TRVG,Trivago,SELL,5.46,5.41,0.92,cash_rule_sp500_ema10_below_ema20
+2026-07-25,GRPN,Groupon,SELL,25.81,25.58,0.9,cash_rule_sp500_ema10_below_ema20
+2026-07-25,DHER.DE,Delivery Hero,SELL,38.26,36.92,3.63,cash_rule_sp500_ema10_below_ema20
+2026-07-25,TDOC,Teladoc,SELL,8.77,9.2,-4.67,cash_rule_sp500_ema10_below_ema20
+2026-07-25,HOOD,Robinhood,SELL,94.91,112.73,-15.81,cash_rule_sp500_ema10_below_ema20
+2026-07-25,W,Wayfair,SELL,84.18,94.5,-10.92,cash_rule_sp500_ema10_below_ema20
+2026-07-25,ALE.WA,Allegro,SELL,44.885,38.44,16.77,cash_rule_sp500_ema10_below_ema20
+2026-07-25,ASC.L,ASOS,SELL,346.0,318.0,8.81,cash_rule_sp500_ema10_below_ema20
+2026-07-25,ETSY,Etsy,SELL,80.62,76.97,4.74,cash_rule_sp500_ema10_below_ema20
+2026-07-25,ZAL.DE,Zalando,SELL,27.07,27.03,0.15,cash_rule_sp500_ema10_below_ema20
+2026-07-25,CART,Instacart,SELL,42.21,45.78,-7.8,cash_rule_sp500_ema10_below_ema20
+2026-07-25,TTWO,Take-Two Interactive,SELL,231.65,254.99,-9.15,cash_rule_sp500_ema10_below_ema20
+2026-07-25,ROKU,Roku,SELL,141.97,142.43,-0.32,cash_rule_sp500_ema10_below_ema20
+2026-07-25,XYZ,Block,SELL,77.15,78.83,-2.13,cash_rule_sp500_ema10_below_ema20
+2026-07-25,TWLO,Twilio,SELL,191.46,209.31,-8.53,cash_rule_sp500_ema10_below_ema20
+2026-07-25,NET,Cloudflare,SELL,262.15,242.41,8.14,cash_rule_sp500_ema10_below_ema20
+2026-07-25,DBX,Dropbox,SELL,29.19,28.56,2.21,cash_rule_sp500_ema10_below_ema20
+2026-07-25,NYKAA.NS,Nykaa,SELL,324.8,310.3,4.67,cash_rule_sp500_ema10_below_ema20
+2026-07-25,EXPE,Expedia,SELL,259.94,268.69,-3.26,cash_rule_sp500_ema10_below_ema20
+2026-07-25,TRIP,TripAdvisor,SELL,13.7,14.58,-6.04,cash_rule_sp500_ema10_below_ema20
