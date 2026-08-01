@@ -23,3 +23,4 @@ date,nav,weekly_return_pct,num_holdings,in_cash,qualifying_count
 2026-07-11,108765.41,1.0273,20,False,28
 2026-07-18,110072.93,1.2021,20,False,28
 2026-07-25,105652.74,-4.0157,0,True,27
+2026-08-01,105652.74,0.0,0,True,29
