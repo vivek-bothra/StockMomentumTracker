@@ -95,3 +95,23 @@ date,ticker,name,action,price,cost_basis,realized_pnl_pct,reason
 2026-07-25,NYKAA.NS,Nykaa,SELL,324.8,310.3,4.67,cash_rule_sp500_ema10_below_ema20
 2026-07-25,EXPE,Expedia,SELL,259.94,268.69,-3.26,cash_rule_sp500_ema10_below_ema20
 2026-07-25,TRIP,TripAdvisor,SELL,13.7,14.58,-6.04,cash_rule_sp500_ema10_below_ema20
+2026-08-08,JUSTDIAL.NS,Just Dial,BUY,681.55,,,rank_1_of_38
+2026-08-08,GRPN,Groupon,BUY,25.03,,,rank_2_of_38
+2026-08-08,PYPL,PayPal,BUY,59.07,,,rank_3_of_38
+2026-08-08,U,Unity Software,BUY,43.0,,,rank_4_of_38
+2026-08-08,ASC.L,ASOS,BUY,387.5,,,rank_5_of_38
+2026-08-08,NAUKRI.NS,Info Edge,BUY,1225.3,,,rank_6_of_38
+2026-08-08,PINS,Pinterest,BUY,23.68,,,rank_7_of_38
+2026-08-08,TRVG,Trivago,BUY,5.62,,,rank_8_of_38
+2026-08-08,ALE.WA,Allegro,BUY,46.07,,,rank_9_of_38
+2026-08-08,DASH,DoorDash,BUY,216.26,,,rank_10_of_38
+2026-08-08,W,Wayfair,BUY,106.6,,,rank_11_of_38
+2026-08-08,LYFT,Lyft,BUY,17.46,,,rank_12_of_38
+2026-08-08,DBX,Dropbox,BUY,34.81,,,rank_13_of_38
+2026-08-08,PAYTM.NS,Paytm,BUY,1441.6,,,rank_14_of_38
+2026-08-08,BKNG,Booking Holdings,BUY,214.42,,,rank_15_of_38
+2026-08-08,EXPE,Expedia,BUY,310.68,,,rank_16_of_38
+2026-08-08,NET,Cloudflare,BUY,300.27,,,rank_17_of_38
+2026-08-08,ZAL.DE,Zalando,BUY,25.14,,,rank_18_of_38
+2026-08-08,ETSY,Etsy,BUY,85.55,,,rank_19_of_38
+2026-08-08,CARG,CarGurus,BUY,38.985,,,rank_20_of_38

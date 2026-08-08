@@ -1,8 +1,169 @@
 {
-  "holdings": {},
-  "cash": 105652.74303984556,
+  "holdings": {
+    "JUSTDIAL.NS": {
+      "entry_price": 681.55,
+      "entry_date": "2026-08-08",
+      "name": "Just Dial",
+      "region": "IN",
+      "cost_basis": 5282.6372,
+      "rank_score_at_entry": 0.044723
+    },
+    "GRPN": {
+      "entry_price": 25.03,
+      "entry_date": "2026-08-08",
+      "name": "Groupon",
+      "region": "US",
+      "cost_basis": 5282.6372,
+      "rank_score_at_entry": 0.043396
+    },
+    "PYPL": {
+      "entry_price": 59.07,
+      "entry_date": "2026-08-08",
+      "name": "PayPal",
+      "region": "US",
+      "cost_basis": 5282.6372,
+      "rank_score_at_entry": 0.039451
+    },
+    "U": {
+      "entry_price": 43.0,
+      "entry_date": "2026-08-08",
+      "name": "Unity Software",
+      "region": "US",
+      "cost_basis": 5282.6372,
+      "rank_score_at_entry": 0.036093
+    },
+    "ASC.L": {
+      "entry_price": 387.5,
+      "entry_date": "2026-08-08",
+      "name": "ASOS",
+      "region": "UK",
+      "cost_basis": 5282.6372,
+      "rank_score_at_entry": 0.035428
+    },
+    "NAUKRI.NS": {
+      "entry_price": 1225.3,
+      "entry_date": "2026-08-08",
+      "name": "Info Edge",
+      "region": "IN",
+      "cost_basis": 5282.6372,
+      "rank_score_at_entry": 0.033959
+    },
+    "PINS": {
+      "entry_price": 23.68,
+      "entry_date": "2026-08-08",
+      "name": "Pinterest",
+      "region": "US",
+      "cost_basis": 5282.6372,
+      "rank_score_at_entry": 0.031246
+    },
+    "TRVG": {
+      "entry_price": 5.62,
+      "entry_date": "2026-08-08",
+      "name": "Trivago",
+      "region": "US",
+      "cost_basis": 5282.6372,
+      "rank_score_at_entry": 0.031246
+    },
+    "ALE.WA": {
+      "entry_price": 46.07,
+      "entry_date": "2026-08-08",
+      "name": "Allegro",
+      "region": "PL",
+      "cost_basis": 5282.6372,
+      "rank_score_at_entry": 0.030365
+    },
+    "DASH": {
+      "entry_price": 216.26,
+      "entry_date": "2026-08-08",
+      "name": "DoorDash",
+      "region": "US",
+      "cost_basis": 5282.6372,
+      "rank_score_at_entry": 0.029794
+    },
+    "W": {
+      "entry_price": 106.6,
+      "entry_date": "2026-08-08",
+      "name": "Wayfair",
+      "region": "US",
+      "cost_basis": 5282.6372,
+      "rank_score_at_entry": 0.026151
+    },
+    "LYFT": {
+      "entry_price": 17.46,
+      "entry_date": "2026-08-08",
+      "name": "Lyft",
+      "region": "US",
+      "cost_basis": 5282.6372,
+      "rank_score_at_entry": 0.025767
+    },
+    "DBX": {
+      "entry_price": 34.81,
+      "entry_date": "2026-08-08",
+      "name": "Dropbox",
+      "region": "US",
+      "cost_basis": 5282.6372,
+      "rank_score_at_entry": 0.025246
+    },
+    "PAYTM.NS": {
+      "entry_price": 1441.6,
+      "entry_date": "2026-08-08",
+      "name": "Paytm",
+      "region": "IN",
+      "cost_basis": 5282.6372,
+      "rank_score_at_entry": 0.024033
+    },
+    "BKNG": {
+      "entry_price": 214.42,
+      "entry_date": "2026-08-08",
+      "name": "Booking Holdings",
+      "region": "US",
+      "cost_basis": 5282.6372,
+      "rank_score_at_entry": 0.023975
+    },
+    "EXPE": {
+      "entry_price": 310.68,
+      "entry_date": "2026-08-08",
+      "name": "Expedia",
+      "region": "US",
+      "cost_basis": 5282.6372,
+      "rank_score_at_entry": 0.022621
+    },
+    "NET": {
+      "entry_price": 300.27,
+      "entry_date": "2026-08-08",
+      "name": "Cloudflare",
+      "region": "US",
+      "cost_basis": 5282.6372,
+      "rank_score_at_entry": 0.022607
+    },
+    "ZAL.DE": {
+      "entry_price": 25.14,
+      "entry_date": "2026-08-08",
+      "name": "Zalando",
+      "region": "EU",
+      "cost_basis": 5282.6372,
+      "rank_score_at_entry": 0.020891
+    },
+    "ETSY": {
+      "entry_price": 85.55,
+      "entry_date": "2026-08-08",
+      "name": "Etsy",
+      "region": "US",
+      "cost_basis": 5282.6372,
+      "rank_score_at_entry": 0.020424
+    },
+    "CARG": {
+      "entry_price": 38.985,
+      "entry_date": "2026-08-08",
+      "name": "CarGurus",
+      "region": "US",
+      "cost_basis": 5282.6372,
+      "rank_score_at_entry": 0.0203
+    }
+  },
+  "cash": -0.0009601544097677106,
   "nav": 105652.74303984556,
   "inception_date": "2026-02-25",
-  "last_run": "2026-08-01",
-  "in_cash": true
+  "last_run": "2026-08-08",
+  "in_cash": false
 }
