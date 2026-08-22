@@ -115,3 +115,5 @@ date,ticker,name,action,price,cost_basis,realized_pnl_pct,reason
 2026-08-08,ZAL.DE,Zalando,BUY,25.14,,,rank_18_of_38
 2026-08-08,ETSY,Etsy,BUY,85.55,,,rank_19_of_38
 2026-08-08,CARG,CarGurus,BUY,38.985,,,rank_20_of_38
+2026-08-22,ZAL.DE,Zalando,SELL,22.47,25.14,-10.62,signal_off
+2026-08-22,SE,Sea Limited,BUY,117.53,,,rank_1_of_18

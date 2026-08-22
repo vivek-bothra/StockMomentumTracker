@@ -136,14 +136,6 @@
       "cost_basis": 5282.6372,
       "rank_score_at_entry": 0.022607
     },
-    "ZAL.DE": {
-      "entry_price": 25.14,
-      "entry_date": "2026-08-08",
-      "name": "Zalando",
-      "region": "EU",
-      "cost_basis": 5282.6372,
-      "rank_score_at_entry": 0.020891
-    },
     "ETSY": {
       "entry_price": 85.55,
       "entry_date": "2026-08-08",
@@ -159,11 +151,19 @@
       "region": "US",
       "cost_basis": 5282.6372,
       "rank_score_at_entry": 0.0203
+    },
+    "SE": {
+      "entry_price": 117.53,
+      "entry_date": "2026-08-22",
+      "name": "Sea Limited",
+      "region": "US",
+      "cost_basis": 5236.1654,
+      "rank_score_at_entry": 0.041506
     }
   },
-  "cash": -0.0009601544097677106,
-  "nav": 105847.45715317506,
+  "cash": -514.5729677916415,
+  "nav": 104723.30701650759,
   "inception_date": "2026-02-25",
-  "last_run": "2026-08-15",
+  "last_run": "2026-08-22",
   "in_cash": false
 }
