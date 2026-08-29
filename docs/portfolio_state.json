@@ -8,14 +8,6 @@
       "cost_basis": 5282.6372,
       "rank_score_at_entry": 0.044723
     },
-    "GRPN": {
-      "entry_price": 25.03,
-      "entry_date": "2026-08-08",
-      "name": "Groupon",
-      "region": "US",
-      "cost_basis": 5282.6372,
-      "rank_score_at_entry": 0.043396
-    },
     "PYPL": {
       "entry_price": 59.07,
       "entry_date": "2026-08-08",
@@ -159,11 +151,19 @@
       "region": "US",
       "cost_basis": 5236.1654,
       "rank_score_at_entry": 0.041506
+    },
+    "SHOP": {
+      "entry_price": 154.33,
+      "entry_date": "2026-08-29",
+      "name": "Shopify",
+      "region": "US",
+      "cost_basis": 5256.6181,
+      "rank_score_at_entry": 0.035939
     }
   },
-  "cash": -514.5729677916415,
-  "nav": 104723.30701650759,
+  "cash": -1662.0042406242428,
+  "nav": 105132.361012104,
   "inception_date": "2026-02-25",
-  "last_run": "2026-08-22",
+  "last_run": "2026-08-29",
   "in_cash": false
 }

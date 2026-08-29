@@ -117,3 +117,5 @@ date,ticker,name,action,price,cost_basis,realized_pnl_pct,reason
 2026-08-08,CARG,CarGurus,BUY,38.985,,,rank_20_of_38
 2026-08-22,ZAL.DE,Zalando,SELL,22.47,25.14,-10.62,signal_off
 2026-08-22,SE,Sea Limited,BUY,117.53,,,rank_1_of_18
+2026-08-29,GRPN,Groupon,SELL,19.47,25.03,-22.21,signal_off
+2026-08-29,SHOP,Shopify,BUY,154.33,,,rank_1_of_18
