@@ -119,3 +119,23 @@ date,ticker,name,action,price,cost_basis,realized_pnl_pct,reason
 2026-08-22,SE,Sea Limited,BUY,117.53,,,rank_1_of_18
 2026-08-29,GRPN,Groupon,SELL,19.47,25.03,-22.21,signal_off
 2026-08-29,SHOP,Shopify,BUY,154.33,,,rank_1_of_18
+2026-09-12,PINS,Pinterest,SELL,19.05,23.68,-19.55,signal_off
+2026-09-12,ETSY,Etsy,SELL,72.76,85.55,-14.95,signal_off
+2026-09-12,JUSTDIAL.NS,Just Dial,SELL,668.75,681.55,-1.88,cash_rule_sp500_ema10_below_ema20
+2026-09-12,PYPL,PayPal,SELL,53.72,59.07,-9.06,cash_rule_sp500_ema10_below_ema20
+2026-09-12,U,Unity Software,SELL,43.96,43.0,2.23,cash_rule_sp500_ema10_below_ema20
+2026-09-12,ASC.L,ASOS,SELL,413.5,387.5,6.71,cash_rule_sp500_ema10_below_ema20
+2026-09-12,NAUKRI.NS,Info Edge,SELL,1265.0,1225.3,3.24,cash_rule_sp500_ema10_below_ema20
+2026-09-12,TRVG,Trivago,SELL,5.62,5.62,0.0,cash_rule_sp500_ema10_below_ema20
+2026-09-12,ALE.WA,Allegro,SELL,45.0,46.07,-2.32,cash_rule_sp500_ema10_below_ema20
+2026-09-12,DASH,DoorDash,SELL,201.95,216.26,-6.62,cash_rule_sp500_ema10_below_ema20
+2026-09-12,W,Wayfair,SELL,98.57,106.6,-7.53,cash_rule_sp500_ema10_below_ema20
+2026-09-12,LYFT,Lyft,SELL,15.32,17.46,-12.26,cash_rule_sp500_ema10_below_ema20
+2026-09-12,DBX,Dropbox,SELL,35.56,34.81,2.15,cash_rule_sp500_ema10_below_ema20
+2026-09-12,PAYTM.NS,Paytm,SELL,1807.5,1441.6,25.38,cash_rule_sp500_ema10_below_ema20
+2026-09-12,BKNG,Booking Holdings,SELL,173.92,214.42,-18.89,cash_rule_sp500_ema10_below_ema20
+2026-09-12,EXPE,Expedia,SELL,280.83,310.68,-9.61,cash_rule_sp500_ema10_below_ema20
+2026-09-12,NET,Cloudflare,SELL,306.53,300.27,2.08,cash_rule_sp500_ema10_below_ema20
+2026-09-12,CARG,CarGurus,SELL,34.425,38.985,-11.7,cash_rule_sp500_ema10_below_ema20
+2026-09-12,SE,Sea Limited,SELL,106.24,117.53,-9.61,cash_rule_sp500_ema10_below_ema20
+2026-09-12,SHOP,Shopify,SELL,128.79,154.33,-16.55,cash_rule_sp500_ema10_below_ema20
