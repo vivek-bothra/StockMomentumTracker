@@ -1,8 +1,169 @@
 {
-  "holdings": {},
-  "cash": 98712.44145781457,
+  "holdings": {
+    "3659.T": {
+      "entry_price": 3116.0,
+      "entry_date": "2026-09-26",
+      "name": "Nexon",
+      "region": "JP",
+      "cost_basis": 4935.6221,
+      "rank_score_at_entry": 0.037224
+    },
+    "PAYTM.NS": {
+      "entry_price": 1674.0,
+      "entry_date": "2026-09-26",
+      "name": "Paytm",
+      "region": "IN",
+      "cost_basis": 4935.6221,
+      "rank_score_at_entry": 0.027767
+    },
+    "ASC.L": {
+      "entry_price": 489.0,
+      "entry_date": "2026-09-26",
+      "name": "ASOS",
+      "region": "UK",
+      "cost_basis": 4935.6221,
+      "rank_score_at_entry": 0.025048
+    },
+    "U": {
+      "entry_price": 41.55,
+      "entry_date": "2026-09-26",
+      "name": "Unity Software",
+      "region": "US",
+      "cost_basis": 4935.6221,
+      "rank_score_at_entry": 0.024265
+    },
+    "HOOD": {
+      "entry_price": 119.4,
+      "entry_date": "2026-09-26",
+      "name": "Robinhood",
+      "region": "US",
+      "cost_basis": 4935.6221,
+      "rank_score_at_entry": 0.022915
+    },
+    "GDDY": {
+      "entry_price": 97.14,
+      "entry_date": "2026-09-26",
+      "name": "GoDaddy",
+      "region": "US",
+      "cost_basis": 4935.6221,
+      "rank_score_at_entry": 0.022871
+    },
+    "META": {
+      "entry_price": 751.66,
+      "entry_date": "2026-09-26",
+      "name": "Meta Platforms",
+      "region": "US",
+      "cost_basis": 4935.6221,
+      "rank_score_at_entry": 0.021377
+    },
+    "NET": {
+      "entry_price": 349.02,
+      "entry_date": "2026-09-26",
+      "name": "Cloudflare",
+      "region": "US",
+      "cost_basis": 4935.6221,
+      "rank_score_at_entry": 0.015951
+    },
+    "NAUKRI.NS": {
+      "entry_price": 1254.8,
+      "entry_date": "2026-09-26",
+      "name": "Info Edge",
+      "region": "IN",
+      "cost_basis": 4935.6221,
+      "rank_score_at_entry": 0.013714
+    },
+    "SHOP": {
+      "entry_price": 142.25,
+      "entry_date": "2026-09-26",
+      "name": "Shopify",
+      "region": "US",
+      "cost_basis": 4935.6221,
+      "rank_score_at_entry": 0.012207
+    },
+    "RMV.L": {
+      "entry_price": 448.0,
+      "entry_date": "2026-09-26",
+      "name": "Rightmove",
+      "region": "UK",
+      "cost_basis": 4935.6221,
+      "rank_score_at_entry": 0.011644
+    },
+    "W": {
+      "entry_price": 98.15,
+      "entry_date": "2026-09-26",
+      "name": "Wayfair",
+      "region": "US",
+      "cost_basis": 4935.6221,
+      "rank_score_at_entry": 0.011466
+    },
+    "JUSTDIAL.NS": {
+      "entry_price": 672.35,
+      "entry_date": "2026-09-26",
+      "name": "Just Dial",
+      "region": "IN",
+      "cost_basis": 4935.6221,
+      "rank_score_at_entry": 0.01124
+    },
+    "ALE.WA": {
+      "entry_price": 49.265,
+      "entry_date": "2026-09-26",
+      "name": "Allegro",
+      "region": "PL",
+      "cost_basis": 4935.6221,
+      "rank_score_at_entry": 0.010736
+    },
+    "DBX": {
+      "entry_price": 32.32,
+      "entry_date": "2026-09-26",
+      "name": "Dropbox",
+      "region": "US",
+      "cost_basis": 4935.6221,
+      "rank_score_at_entry": 0.010575
+    },
+    "TWLO": {
+      "entry_price": 275.8,
+      "entry_date": "2026-09-26",
+      "name": "Twilio",
+      "region": "US",
+      "cost_basis": 4935.6221,
+      "rank_score_at_entry": 0.00933
+    },
+    "PYPL": {
+      "entry_price": 55.04,
+      "entry_date": "2026-09-26",
+      "name": "PayPal",
+      "region": "US",
+      "cost_basis": 4935.6221,
+      "rank_score_at_entry": 0.008726
+    },
+    "SE": {
+      "entry_price": 99.55,
+      "entry_date": "2026-09-26",
+      "name": "Sea Limited",
+      "region": "US",
+      "cost_basis": 4935.6221,
+      "rank_score_at_entry": 0.007743
+    },
+    "DASH": {
+      "entry_price": 193.36,
+      "entry_date": "2026-09-26",
+      "name": "DoorDash",
+      "region": "US",
+      "cost_basis": 4935.6221,
+      "rank_score_at_entry": 0.006718
+    },
+    "MELI": {
+      "entry_price": 1752.61,
+      "entry_date": "2026-09-26",
+      "name": "MercadoLibre",
+      "region": "US",
+      "cost_basis": 4935.6221,
+      "rank_score_at_entry": 0.006417
+    }
+  },
+  "cash": -0.0005421853984444169,
   "nav": 98712.44145781457,
   "inception_date": "2026-02-25",
-  "last_run": "2026-09-19",
-  "in_cash": true
+  "last_run": "2026-09-26",
+  "in_cash": false
 }

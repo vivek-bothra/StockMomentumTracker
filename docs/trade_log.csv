@@ -139,3 +139,23 @@ date,ticker,name,action,price,cost_basis,realized_pnl_pct,reason
 2026-09-12,CARG,CarGurus,SELL,34.425,38.985,-11.7,cash_rule_sp500_ema10_below_ema20
 2026-09-12,SE,Sea Limited,SELL,106.24,117.53,-9.61,cash_rule_sp500_ema10_below_ema20
 2026-09-12,SHOP,Shopify,SELL,128.79,154.33,-16.55,cash_rule_sp500_ema10_below_ema20
+2026-09-26,3659.T,Nexon,BUY,3116.0,,,rank_1_of_25
+2026-09-26,PAYTM.NS,Paytm,BUY,1674.0,,,rank_2_of_25
+2026-09-26,ASC.L,ASOS,BUY,489.0,,,rank_3_of_25
+2026-09-26,U,Unity Software,BUY,41.55,,,rank_4_of_25
+2026-09-26,HOOD,Robinhood,BUY,119.4,,,rank_5_of_25
+2026-09-26,GDDY,GoDaddy,BUY,97.14,,,rank_6_of_25
+2026-09-26,META,Meta Platforms,BUY,751.66,,,rank_7_of_25
+2026-09-26,NET,Cloudflare,BUY,349.02,,,rank_8_of_25
+2026-09-26,NAUKRI.NS,Info Edge,BUY,1254.8,,,rank_9_of_25
+2026-09-26,SHOP,Shopify,BUY,142.25,,,rank_10_of_25
+2026-09-26,RMV.L,Rightmove,BUY,448.0,,,rank_11_of_25
+2026-09-26,W,Wayfair,BUY,98.15,,,rank_12_of_25
+2026-09-26,JUSTDIAL.NS,Just Dial,BUY,672.35,,,rank_13_of_25
+2026-09-26,ALE.WA,Allegro,BUY,49.265,,,rank_14_of_25
+2026-09-26,DBX,Dropbox,BUY,32.32,,,rank_15_of_25
+2026-09-26,TWLO,Twilio,BUY,275.8,,,rank_16_of_25
+2026-09-26,PYPL,PayPal,BUY,55.04,,,rank_17_of_25
+2026-09-26,SE,Sea Limited,BUY,99.55,,,rank_18_of_25
+2026-09-26,DASH,DoorDash,BUY,193.36,,,rank_19_of_25
+2026-09-26,MELI,MercadoLibre,BUY,1752.61,,,rank_20_of_25
