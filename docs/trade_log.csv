@@ -159,3 +159,8 @@ date,ticker,name,action,price,cost_basis,realized_pnl_pct,reason
 2026-09-26,SE,Sea Limited,BUY,99.55,,,rank_18_of_25
 2026-09-26,DASH,DoorDash,BUY,193.36,,,rank_19_of_25
 2026-09-26,MELI,MercadoLibre,BUY,1752.61,,,rank_20_of_25
+2026-10-03,RMV.L,Rightmove,SELL,450.3,448.0,0.51,signal_off
+2026-10-03,SE,Sea Limited,SELL,95.19,99.55,-4.38,signal_off
+2026-10-03,DASH,DoorDash,SELL,189.15,193.36,-2.18,signal_off
+2026-10-03,MELI,MercadoLibre,SELL,1696.5601,1752.61,-3.2,signal_off
+2026-10-03,MTCH,Match Group,BUY,40.32,,,rank_1_of_1
