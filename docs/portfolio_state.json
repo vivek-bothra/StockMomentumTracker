@@ -135,11 +135,35 @@
       "region": "US",
       "cost_basis": 5766.3501,
       "rank_score_at_entry": 0.002217
+    },
+    "WIX": {
+      "entry_price": 76.56,
+      "entry_date": "2026-10-10",
+      "name": "Wix",
+      "region": "US",
+      "cost_basis": 4969.535,
+      "rank_score_at_entry": 0.041246
+    },
+    "NU": {
+      "entry_price": 16.12,
+      "entry_date": "2026-10-10",
+      "name": "Nu Holdings",
+      "region": "US",
+      "cost_basis": 4969.535,
+      "rank_score_at_entry": 0.009727
+    },
+    "RMV.L": {
+      "entry_price": 502.6,
+      "entry_date": "2026-10-10",
+      "name": "Rightmove",
+      "region": "UK",
+      "cost_basis": 4969.535,
+      "rank_score_at_entry": 0.0085
     }
   },
-  "cash": 13520.003187454877,
-  "nav": 98027.95187518575,
+  "cash": -1388.6018125451228,
+  "nav": 99390.69996603004,
   "inception_date": "2026-02-25",
-  "last_run": "2026-10-03",
+  "last_run": "2026-10-10",
   "in_cash": false
 }

@@ -164,3 +164,6 @@ date,ticker,name,action,price,cost_basis,realized_pnl_pct,reason
 2026-10-03,DASH,DoorDash,SELL,189.15,193.36,-2.18,signal_off
 2026-10-03,MELI,MercadoLibre,SELL,1696.5601,1752.61,-3.2,signal_off
 2026-10-03,MTCH,Match Group,BUY,40.32,,,rank_1_of_1
+2026-10-10,WIX,Wix,BUY,76.56,,,rank_1_of_4
+2026-10-10,NU,Nu Holdings,BUY,16.12,,,rank_2_of_4
+2026-10-10,RMV.L,Rightmove,BUY,502.6,,,rank_3_of_4
